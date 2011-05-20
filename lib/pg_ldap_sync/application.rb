@@ -222,8 +222,9 @@ class Application
   end
 
   def grant_membership(role_name, add_members)
+    pg_conf = @config[:pg_groups]
     add_members_escaped = add_members.map{|m| "\"#{m}\"" }.join(",")
-    pg_exec "GRANT \"#{role_name}\" TO #{add_members_escaped}"
+    pg_exec "GRANT \"#{role_name}\" TO #{add_members_escaped} #{pg_conf[:grant_options]}"
   end
 
   def revoke_membership(role_name, rm_members)
