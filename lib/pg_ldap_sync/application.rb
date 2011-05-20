@@ -274,7 +274,7 @@ class Application
       mmemberships.each do |mmembership|
         log.debug{ "#{mmembership.state} #{mmembership.role_name} to #{mmembership.member_of}" }
       end
-      "mambership stat: grant: #{mmemberships.count{|u| u.state==:grant }} revoke: #{mmemberships.count{|u| u.state==:revoke }} keep: #{mmemberships.count{|u| u.state==:keep }}"
+      "membership stat: grant: #{mmemberships.count{|u| u.state==:grant }} revoke: #{mmemberships.count{|u| u.state==:revoke }} keep: #{mmemberships.count{|u| u.state==:keep }}"
     }
 
     sync_roles_to_pg(mroles)
