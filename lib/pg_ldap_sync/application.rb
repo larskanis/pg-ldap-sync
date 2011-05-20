@@ -187,6 +187,40 @@ class Application
     end
   end
 
+  MatchedMembership = Struct.new :role_name, :member_of, :state
+
+  def match_memberships(ldap_roles, pg_roles)
+    ldap_by_dn = ldap_roles.inject({}){|h,r| h[r.dn] = r; h }
+    ldap_by_m2m = ldap_roles.inject([]){|a,r|
+      next a unless r.member_dns
+      a + r.member_dns.map{|dn|
+        if member_of=ldap_by_dn[dn]
+          [r.name, member_of.name]
+        else
+          log.warn{"ldap member with dn #{dn} is unknown"}
+          nil
+        end
+      }.compact
+    }
+
+    pg_by_name = pg_roles.inject({}){|h,r| h[r.name] = r; h }
+    pg_by_m2m = pg_roles.inject([]){|a,r|
+      next a unless r.member_names
+      a + r.member_names.map{|name|
+        member_of = pg_by_name[name]
+        unless member_of
+          log.warn{"pg member with name #{name} is unknown"}
+        end
+        [r.name, member_of.name]
+      }.compact
+    }
+
+    memberships  = (ldap_by_m2m & pg_by_m2m).map{|r,mo| MatchedMembership.new r, mo, :keep }
+    memberships += (ldap_by_m2m - pg_by_m2m).map{|r,mo| MatchedMembership.new r, mo, :grant }
+    memberships += (pg_by_m2m - ldap_by_m2m).map{|r,mo| MatchedMembership.new r, mo, :revoke }
+    return memberships
+  end
+
   def grant_membership(role_name, add_members)
     add_members_escaped = add_members.map{|m| "\"#{m}\"" }.join(",")
     pg_exec "GRANT \"#{role_name}\" TO #{add_members_escaped}"
@@ -197,20 +231,20 @@ class Application
     pg_exec "REVOKE \"#{role_name}\" FROM #{rm_members_escaped}"
   end
 
-  def sync_membership_to_pg(roles)
-    roles.each do |role|
-      case role.state
-      when :create
-        if role.ldap.member_dns
-          role.ldap.member_dns.each{|dn|  }
-        end
-
-        grant all
-      when :keep
-        grant new
-        revoke old
-      end
+  def sync_membership_to_pg(memberships)
+    grants = {}
+    memberships.select{|ms| ms.state==:grant }.each do |ms|
+      grants[ms.role_name] ||= []
+      grants[ms.role_name] << ms.member_of
     end
+    revokes = {}
+    memberships.select{|ms| ms.state==:revoke }.each do |ms|
+      revokes[ms.role_name] ||= []
+      revokes[ms.role_name] << ms.member_of
+    end
+
+    grants.each{|role_name, members| grant_membership(role_name, members) }
+    revokes.each{|role_name, members| revoke_membership(role_name, members) }
   end
 
   def start!
@@ -234,8 +268,16 @@ class Application
       "user/group stat: create: #{mroles.count{|u| u.state==:create }} drop: #{mroles.count{|u| u.state==:drop }} keep: #{mroles.count{|u| u.state==:keep }}"
     }
 
+    mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
+    log.info{
+      mmemberships.each do |mmembership|
+        log.debug{ "#{mmembership.state} #{mmembership.role_name} to #{mmembership.member_of}" }
+      end
+      "mambership stat: grant: #{mmemberships.count{|u| u.state==:grant }} revoke: #{mmemberships.count{|u| u.state==:revoke }} keep: #{mmemberships.count{|u| u.state==:keep }}"
+    }
+
     sync_roles_to_pg(mroles)
-#     sync_membership_to_pg(mroles)
+    sync_membership_to_pg(mmemberships)
   end
 
   def self.run(argv)
