@@ -6,6 +6,7 @@ require 'optparse'
 require 'yaml'
 require 'logger'
 require 'pg'
+require 'kwalify'
 
 require 'pg_ldap_sync'
 
@@ -25,6 +26,29 @@ class Application
     else
       return hash
     end
+  end
+
+
+  def validate_config(config, schema, fname)
+    schema = YAML.load_file(schema)
+    validator = Kwalify::Validator.new(schema)
+    errors = validator.validate(config)
+    if errors && !errors.empty?
+      errors.each do |err|
+        log.fatal "error in #{fname}: [#{err.path}] #{err.message}"
+      end
+      exit -1
+    end
+  end
+
+  def read_config_file(fname)
+    raise "Config file #{fname.inspect} does not exist" unless File.exist?(fname)
+    config = YAML.load(File.read(fname))
+
+    schema_fname = File.join(File.dirname(__FILE__), '../../config/schema.yaml')
+    validate_config(config, schema_fname, fname)
+
+    @config = string_to_symbol(config)
   end
 
   LdapRole = Struct.new :name, :dn, :member_dns
@@ -263,23 +287,28 @@ class Application
   end
 
   def start!
-    raise "Config file #{@config_fname.inspect} does not exist" unless File.exist?(@config_fname)
-    @config = string_to_symbol(YAML.load(File.read(@config_fname)))
+    read_config_file(@config_fname)
 
+    # gather LDAP users and groups
     @ldap = Net::LDAP.new @config[:ldap_connection]
     ldap_users = uniq_names search_ldap_users
     ldap_groups = uniq_names search_ldap_groups
 
+    # gather PGs users and groups
     @pgconn = PGconn.connect @config[:pg_connection]
     pg_users = uniq_names search_pg_users
     pg_groups = uniq_names search_pg_groups
 
+    # compare LDAP to PG users and groups
     mroles = match_roles(ldap_users, pg_users, :user)
     mroles += match_roles(ldap_groups, pg_groups, :group)
 
+    # compare LDAP to PG memberships
     mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
 
+    # apply changes on roles
     sync_roles_to_pg(mroles)
+    # apply changes on memberships
     sync_membership_to_pg(mmemberships)
   end
 
