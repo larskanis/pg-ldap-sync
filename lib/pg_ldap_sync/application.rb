@@ -193,15 +193,15 @@ class Application
     end
   end
 
-  MatchedMembership = Struct.new :role_name, :member_of, :state
+  MatchedMembership = Struct.new :role_name, :has_member, :state
 
   def match_memberships(ldap_roles, pg_roles)
     ldap_by_dn = ldap_roles.inject({}){|h,r| h[r.dn] = r; h }
     ldap_by_m2m = ldap_roles.inject([]){|a,r|
       next a unless r.member_dns
       a + r.member_dns.map{|dn|
-        if member_of=ldap_by_dn[dn]
-          [r.name, member_of.name]
+        if has_member=ldap_by_dn[dn]
+          [r.name, has_member.name]
         else
           log.warn{"ldap member with dn #{dn} is unknown"}
           nil
@@ -213,11 +213,11 @@ class Application
     pg_by_m2m = pg_roles.inject([]){|a,r|
       next a unless r.member_names
       a + r.member_names.map{|name|
-        member_of = pg_by_name[name]
-        unless member_of
+        has_member = pg_by_name[name]
+        unless has_member
           log.warn{"pg member with name #{name} is unknown"}
         end
-        [r.name, member_of.name]
+        [r.name, has_member.name]
       }.compact
     }
 
@@ -227,7 +227,7 @@ class Application
 
     log.info{
       memberships.each do |membership|
-        log.debug{ "#{membership.state} #{membership.role_name} to #{membership.member_of}" }
+        log.debug{ "#{membership.state} #{membership.role_name} to #{membership.has_member}" }
       end
       "membership stat: grant: #{memberships.count{|u| u.state==:grant }} revoke: #{memberships.count{|u| u.state==:revoke }} keep: #{memberships.count{|u| u.state==:keep }}"
     }
@@ -249,12 +249,12 @@ class Application
     grants = {}
     memberships.select{|ms| ms.state==:grant }.each do |ms|
       grants[ms.role_name] ||= []
-      grants[ms.role_name] << ms.member_of
+      grants[ms.role_name] << ms.has_member
     end
     revokes = {}
     memberships.select{|ms| ms.state==:revoke }.each do |ms|
       revokes[ms.role_name] ||= []
-      revokes[ms.role_name] << ms.member_of
+      revokes[ms.role_name] << ms.has_member
     end
 
     grants.each{|role_name, members| grant_membership(role_name, members) }
