@@ -130,30 +130,36 @@ class Application
     ldap_by_name = ldaps.inject({}){|h,u| h[u.name] = u; h }
     pg_by_name = pgs.inject({}){|h,u| h[u.name] = u; h }
 
-    users = []
+    roles = []
     ldaps.each do |ld|
       pg = pg_by_name[ld.name]
-      user = MatchedRole.new ld, pg, ld.name
-      users << user
+      role = MatchedRole.new ld, pg, ld.name
+      roles << role
     end
     pgs.each do |pg|
       ld = ldap_by_name[pg.name]
       next if ld
-      user = MatchedRole.new ld, pg, pg.name
-      users << user
+      role = MatchedRole.new ld, pg, pg.name
+      roles << role
     end
 
-    users.each do |u|
-      u.state = case
-        when u.ldap && !u.pg then :create
-        when !u.ldap && u.pg then :drop
-        when u.pg && u.ldap then :keep
-        else raise "invalid user #{u.inspect}"
+    roles.each do |r|
+      r.state = case
+        when r.ldap && !r.pg then :create
+        when !r.ldap && r.pg then :drop
+        when r.pg && r.ldap then :keep
+        else raise "invalid user #{r.inspect}"
       end
-      u.type = type
+      r.type = type
     end
 
-    return users
+    log.info{
+      roles.each do |role|
+        log.debug{ "#{role.state} #{role.type}: #{role.name}" }
+      end
+      "#{type} stat: create: #{roles.count{|r| r.state==:create }} drop: #{roles.count{|r| r.state==:drop }} keep: #{roles.count{|r| r.state==:keep }}"
+    }
+    return roles
   end
 
   def pg_exec(sql, params=nil)
@@ -218,6 +224,13 @@ class Application
     memberships  = (ldap_by_m2m & pg_by_m2m).map{|r,mo| MatchedMembership.new r, mo, :keep }
     memberships += (ldap_by_m2m - pg_by_m2m).map{|r,mo| MatchedMembership.new r, mo, :grant }
     memberships += (pg_by_m2m - ldap_by_m2m).map{|r,mo| MatchedMembership.new r, mo, :revoke }
+
+    log.info{
+      memberships.each do |membership|
+        log.debug{ "#{membership.state} #{membership.role_name} to #{membership.member_of}" }
+      end
+      "membership stat: grant: #{memberships.count{|u| u.state==:grant }} revoke: #{memberships.count{|u| u.state==:revoke }} keep: #{memberships.count{|u| u.state==:keep }}"
+    }
     return memberships
   end
 
@@ -262,20 +275,8 @@ class Application
 
     mroles = match_roles(ldap_users, pg_users, :user)
     mroles += match_roles(ldap_groups, pg_groups, :group)
-    log.info{
-      mroles.each do |mrole|
-        log.debug{ "#{mrole.state} #{mrole.type}: #{mrole.name}" }
-      end
-      "user/group stat: create: #{mroles.count{|u| u.state==:create }} drop: #{mroles.count{|u| u.state==:drop }} keep: #{mroles.count{|u| u.state==:keep }}"
-    }
 
     mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
-    log.info{
-      mmemberships.each do |mmembership|
-        log.debug{ "#{mmembership.state} #{mmembership.role_name} to #{mmembership.member_of}" }
-      end
-      "membership stat: grant: #{mmemberships.count{|u| u.state==:grant }} revoke: #{mmemberships.count{|u| u.state==:revoke }} keep: #{mmemberships.count{|u| u.state==:keep }}"
-    }
 
     sync_roles_to_pg(mroles)
     sync_membership_to_pg(mmemberships)
