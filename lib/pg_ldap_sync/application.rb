@@ -47,7 +47,7 @@ class Application
       entry.each do |attribute, values|
         log.debug "   #{attribute}:"
         values.each do |value|
-          log.debug "      --->#{value}"
+          log.debug "      --->#{value.inspect}"
         end
       end
     end
@@ -72,7 +72,7 @@ class Application
       entry.each do |attribute, values|
         log.debug "   #{attribute}:"
         values.each do |value|
-          log.debug "      --->#{value}"
+          log.debug "      --->#{value.inspect}"
         end
       end
     end
