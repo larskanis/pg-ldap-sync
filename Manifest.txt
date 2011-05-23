@@ -4,5 +4,7 @@ Manifest.txt
 README.txt
 Rakefile
 bin/pg_ldap_sync
+config/config.yaml
 lib/pg_ldap_sync.rb
+lib/pg_ldap_sync/application.rb
 test/test_pg_ldap_sync.rb
