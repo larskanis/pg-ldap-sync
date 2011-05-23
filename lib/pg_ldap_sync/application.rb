@@ -213,11 +213,12 @@ class Application
     pg_by_m2m = pg_roles.inject([]){|a,r|
       next a unless r.member_names
       a + r.member_names.map{|name|
-        has_member = pg_by_name[name]
-        unless has_member
+        if has_member=pg_by_name[name]
+          [r.name, has_member.name]
+        else
           log.warn{"pg member with name #{name} is unknown"}
+          nil
         end
-        [r.name, has_member.name]
       }.compact
     }
 
