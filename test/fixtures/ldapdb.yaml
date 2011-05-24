@@ -1,0 +1,38 @@
+---
+dc=example,dc=com:
+  cn:
+  - Top object
+cn=Fred Flintstone,dc=example,dc=com:
+  cn:
+  - Fred Flintstone
+  mail:
+  - fred@bedrock.org
+  - fred.flintstone@bedrock.org
+  sn:
+  - Flintstone
+  sAMAccountName:
+  - fred
+cn=Wilma Flintstone,dc=example,dc=com:
+  cn:
+  - Wilma Flintstone
+  mail:
+  - wilma@bedrock.org
+  sAMAccountName:
+  - wilma
+cn=Flintstones,dc=example,dc=com:
+  cn:
+  - Flintstones
+  member:
+  - cn=Fred Flintstone,dc=example,dc=com
+  - cn=Wilma Flintstone,dc=example,dc=com
+cn=Wilmas,dc=example,dc=com:
+  cn:
+  - Wilmas
+  member:
+  - cn=Wilma Flintstone,dc=example,dc=com
+cn=All Users,dc=example,dc=com:
+  cn:
+  - All Users
+  member:
+  - cn=Wilmas,dc=example,dc=com
+  - cn=Fred Flintstone,dc=example,dc=com
