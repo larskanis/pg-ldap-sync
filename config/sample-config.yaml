@@ -1,0 +1,45 @@
+
+# Connection parameters to LDAP server
+# see also: http://net-ldap.rubyforge.org/Net/LDAP.html#method-c-new
+ldap_connection:
+  host: localhost
+  port: 389
+  auth:
+    method: :simple
+    username: CN=username,OU=!Serviceaccounts,OU=company,DC=company,DC=de
+    password: secret
+
+# Search parameters for LDAP users which should be synchronized
+ldap_users:
+  base: OU=company,OU=company,DC=company,DC=de
+  filter: (&(objectClass=person)(objectClass=organizationalPerson)(givenName=*)(sn=*))
+  # this attribute is used as PG role name
+  name_attribute: sAMAccountName
+
+# Search parameters for LDAP groups which should be synchronized
+ldap_groups:
+  base: OU=company,OU=company,DC=company,DC=de
+  filter: (|(cn=cc.group1)(cn=group2)(cn=group3))
+  # this attribute is used as PG role name
+  name_attribute: cn
+  # this attribute must reference to all member DN's of the given group
+  member_attribute: member
+
+# Connection parameters to PostgreSQL server
+# see also: http://rubydoc.info/gems/pg/0.11.0/PGconn#initialize-instance_method
+pg_connection:
+  host:
+  dbname: postgres
+  user: db-username
+  password:
+
+pg_users:
+  # WHERE-condition to identify LDAP generated users
+  filter: rolcanlogin AND NOT rolsuper
+  create_options: LOGIN
+
+pg_groups:
+  # WHERE-condition to identify LDAP generated groups
+  filter: NOT rolcanlogin
+  create_options: NOLOGIN
+  grant_options:

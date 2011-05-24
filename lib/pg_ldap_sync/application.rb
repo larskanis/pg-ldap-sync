@@ -61,7 +61,7 @@ class Application
       name = entry[ldap_user_conf[:name_attribute]].first
 
       unless name
-        log.warn "user attribute #{ldap_user_conf[:name_attribute].inspect} not found for #{entry.dn}"
+        log.warn "user attribute #{ldap_user_conf[:name_attribute].inspect} not defined for #{entry.dn}"
         next
       end
 
@@ -86,7 +86,7 @@ class Application
       name = entry[ldap_group_conf[:name_attribute]].first
 
       unless name
-        log.warn "user attribute #{ldap_group_conf[:name_attribute].inspect} not found for #{entry.dn}"
+        log.warn "user attribute #{ldap_group_conf[:name_attribute].inspect} not defined for #{entry.dn}"
         next
       end
 

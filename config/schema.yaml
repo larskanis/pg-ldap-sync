@@ -1,0 +1,62 @@
+type:       map
+mapping:
+  "ldap_connection":
+    type:      any
+    required:  yes
+
+  "ldap_users":
+    type: map
+    required: yes
+    mapping:
+      "base":
+        type: str
+        required:  yes
+      "filter":
+        type: str
+        required:  yes
+      "name_attribute":
+        type: str
+        required:  yes
+
+  "ldap_groups":
+    type: map
+    required: yes
+    mapping:
+      "base":
+        type: str
+        required:  yes
+      "filter":
+        type: str
+        required:  yes
+      "name_attribute":
+        type: str
+        required:  yes
+      "member_attribute":
+        type: str
+        required:  yes
+
+  "pg_connection":
+    type:      any
+    required:  yes
+
+  "pg_users":
+    type: map
+    required: yes
+    mapping:
+      "filter":
+        type: str
+        required:  yes
+      "create_options":
+        type: str
+
+  "pg_groups":
+    type: map
+    required: yes
+    mapping:
+      "filter":
+        type: str
+        required:  yes
+      "create_options":
+        type: str
+      "grant_options":
+        type: str
