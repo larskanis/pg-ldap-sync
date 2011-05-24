@@ -5,8 +5,28 @@ require 'net/ldap'
 require 'optparse'
 require 'yaml'
 require 'logger'
-require 'pg'
 require 'kwalify'
+
+begin
+  require 'pg'
+rescue LoadError => e
+  begin
+    require 'postgres'
+    class PGconn
+      alias initialize_before_hash_change initialize
+      def initialize(*args)
+        arg = args.first
+        if args.length==1 && arg.kind_of?(Hash)
+          initialize_before_hash_change(arg[:host], arg[:port], nil, nil, arg[:dbname], arg[:user], arg[:password])
+        else
+          initialize_before_hash_change(*args)
+        end
+      end
+    end
+  rescue LoadError
+    raise e
+  end
+end
 
 require 'pg_ldap_sync'
 
@@ -111,8 +131,8 @@ class Application
     users = []
     res = @pgconn.exec "SELECT rolname FROM pg_roles WHERE #{pg_users_conf[:filter]}"
     res.each do |tuple|
-      user = PgRole.new tuple['rolname']
-      log.info{ "found pg-user: #{user.name}"}
+      user = PgRole.new tuple[0]
+      log.info{ "found pg-user: #{user.name.inspect}"}
       users << user
     end
     return users
@@ -124,10 +144,10 @@ class Application
     groups = []
     res = @pgconn.exec "SELECT rolname, oid FROM pg_roles WHERE #{pg_groups_conf[:filter]}"
     res.each do |tuple|
-      res2 = @pgconn.exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=$1", [{:value=>tuple['oid']}]
-      member_names = res2.field_values 'rolname'
-      group = PgRole.new tuple['rolname'], member_names
-      log.info{ "found pg-group: #{group.name}"}
+      res2 = @pgconn.exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{PGconn.escape(tuple[1])}"
+      member_names = res2.map{|row| row[0] }
+      group = PgRole.new tuple[0], member_names
+      log.info{ "found pg-group: #{group.name.inspect} with members: #{member_names.inspect}"}
       groups << group
     end
     return groups
@@ -186,10 +206,10 @@ class Application
     return roles
   end
 
-  def pg_exec(sql, params=nil)
-    log.info{ "SQL: #{sql}" + (params ? " params: #{params}" : '') }
+  def pg_exec(sql)
+    log.info{ "SQL: #{sql}" }
     unless self.test
-      @pgconn.exec sql, params
+      @pgconn.exec sql
     end
   end
 

@@ -15,8 +15,12 @@ ldap_groups:
   member_attribute: member
 
 pg_connection:
-  host: localhost
   dbname: postgres
+# needed for postgres-pr:
+#   host: localhost
+#   port: 54321
+#   user: username
+#   password: secret
 
 pg_users:
   filter: rolcanlogin AND NOT rolsuper
