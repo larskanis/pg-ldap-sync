@@ -39,8 +39,8 @@ Create a config file based on <tt>config/sample-config.yaml</tt> .
 == INSTALL:
 
 Install Ruby and rubygems:
-* http://rubyinstaller.org/ on Windows
-* <tt>apt-get install ruby rubygems</tt> on Debian
+* on Windows: http://rubyinstaller.org
+* on Debian: <tt>apt-get install ruby rubygems</tt>
 
 Install pg-ldap-sync and a database driver for PostgreSQL:
 * <tt>gem install pg-ldap-sync pg</tt>
