@@ -310,6 +310,8 @@ class Application
     sync_roles_to_pg(mroles)
     # apply changes on memberships
     sync_membership_to_pg(mmemberships)
+
+    @pgconn.close
   end
 
   def self.run(argv)
@@ -318,13 +320,13 @@ class Application
     s.log = Logger.new(STDOUT)
     s.log.level = Logger::ERROR
 
-    OptionParser.new(argv) do |opts|
+    OptionParser.new do |opts|
       opts.banner = "Usage: #{$0} [options]"
       opts.on("-v", "--[no-]verbose", "Be more verbose"){ s.log.level-=1 }
       opts.on("-c", "--config FILE", "Config file [#{s.config_fname}]", &s.method(:config_fname=))
       opts.on("-t", "--[no-]test", "Don't do any change in the database", &s.method(:test=))
 
-      opts.parse!
+      opts.parse!(argv)
     end
 
     s.start!
