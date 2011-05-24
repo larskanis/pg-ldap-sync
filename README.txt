@@ -1,26 +1,45 @@
-= pg_ldap_sync
+= Use LDAP permissions in PostgreSQL
 
-* FIX (url)
+* https://github.com/larskanis/pg-ldap-sync
 
 == DESCRIPTION:
 
-FIX (describe your package)
+PostgreSQL offers different authentication methods, like LDAP, SSPI, GSSAPI or SSL.
+For any method the user must already exist in the database, before
+the authentication can be used. LDAP is often used to do a centralized
+user and role management in an enterprise environment.
+
+This program synchronizes users, groups and memberships from LDAP to
+PostgreSQL.
 
 == FEATURES/PROBLEMS:
 
-* FIX (list of features or problems)
+* Use Active Directory as LDAP-Server
+* Configurable per YAML config file
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+  pg_ldap_sync -vv -t
 
 == REQUIREMENTS:
 
-* FIX (list of requirements)
+* Installed Ruby and rubygems
+* LDAP- and PostgreSQL-Server
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+Install Ruby and rubygems:
+* http://rubyinstaller.org/ on Windows
+* <tt>apt-get install ruby rubygems</tt> on Debian
+
+Install pg-ldap-sync and a database driver for PostgreSQL:
+* <tt>gem install pg-ldap-sync postgres-pr</tt>
+
+Or install from Git:
+  git clone https://github.com/larskanis/pg-ldap-sync.git
+  cd pg-ldap-sync
+  rake install_gem
+
 
 == LICENSE:
 
