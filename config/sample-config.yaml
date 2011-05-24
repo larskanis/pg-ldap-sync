@@ -12,6 +12,7 @@ ldap_connection:
 # Search parameters for LDAP users which should be synchronized
 ldap_users:
   base: OU=company,OU=company,DC=company,DC=de
+  # LDAP filter (according to RFC 2254)
   filter: (&(objectClass=person)(objectClass=organizationalPerson)(givenName=*)(sn=*))
   # this attribute is used as PG role name
   name_attribute: sAMAccountName
@@ -34,12 +35,16 @@ pg_connection:
   password:
 
 pg_users:
-  # WHERE-condition to identify LDAP generated users
+  # Filter for identifying LDAP generated users in the database.
+  # It's the WHERE-condition to "SELECT rolname, oid FROM pg_roles"
   filter: rolcanlogin AND NOT rolsuper
+  # Options for CREATE RULE statements
   create_options: LOGIN
 
 pg_groups:
-  # WHERE-condition to identify LDAP generated groups
+  # Filter for identifying LDAP generated groups in the database.
+  # It's the WHERE-condition to "SELECT rolname, oid FROM pg_roles"
   filter: NOT rolcanlogin
+  # Options for CREATE RULE statements
   create_options: NOLOGIN
   grant_options:
