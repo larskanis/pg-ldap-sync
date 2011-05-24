@@ -109,7 +109,7 @@ class Application
     pg_users_conf = @config[:pg_users]
 
     users = []
-    res = @pgconn.exec "SELECT * FROM pg_roles WHERE #{pg_users_conf[:filter]}"
+    res = @pgconn.exec "SELECT rolname FROM pg_roles WHERE #{pg_users_conf[:filter]}"
     res.each do |tuple|
       user = PgRole.new tuple['rolname']
       log.info{ "found pg-user: #{user.name}"}
