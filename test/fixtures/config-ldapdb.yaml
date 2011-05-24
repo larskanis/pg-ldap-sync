@@ -2,10 +2,6 @@
 ldap_connection:
   host: localhost
   port: 1389
-#  auth:
-#    method: :simple
-#    username: dc=example,dc=com
-#    password:
 
 ldap_users:
   base: dc=example,dc=com
@@ -23,14 +19,10 @@ pg_connection:
   dbname: postgres
 
 pg_users:
-  # WHERE-condition to identify LDAP generated users
-#  filter: rolcanlogin AND oid IN (SELECT pam.member FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.roleid WHERE pr.rolname='edv')
   filter: rolcanlogin AND NOT rolsuper
   create_options: LOGIN
 
 pg_groups:
-  # WHERE-condition to identify LDAP generated groups
-#  filter: NOT rolcanlogin AND rolname='edv'
   filter: NOT rolcanlogin
   create_options: NOLOGIN
   grant_options:
