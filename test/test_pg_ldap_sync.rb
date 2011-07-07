@@ -67,6 +67,13 @@ class TestPgLdapSync < Test::Unit::TestCase
     PgLdapSync::Application.run(%w[-c test/fixtures/config-ldapdb.yaml -vv])
 
     ENV['LC_MESSAGES'] = 'C'
-    log_and_run 'psql', '-c', "\\du", 'postgres'
+    psql_du = `psql -c \\\\du postgres`
+    puts psql_du
+    
+    assert_match(/All Users.*Cannot login.*{}/, psql_du)
+    assert_match(/Flintstones.*Cannot login.*{}/, psql_du)
+    assert_match(/Wilmas.*Cannot login.*All Users/, psql_du)
+    assert_match(/fred.*All Users.*Flintstones/, psql_du)
+    assert_match(/wilma.*Flintstones.*Wilmas/, psql_du)
   end
 end
