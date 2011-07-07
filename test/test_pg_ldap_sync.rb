@@ -45,12 +45,12 @@ class TestPgLdapSync < Test::Unit::TestCase
       FileUtils.mkdir_p 'temp/pg_data'
       log_and_run 'initdb', '-D', 'temp/pg_data'
     end
-    log_and_run 'pg_ctl', '-w', '-o', "-k .", '-D', 'temp/pg_data', 'start'
+    log_and_run 'pg_ctl', '-w', '-o', "-k.", '-D', 'temp/pg_data', 'start'
     log_and_run 'psql', '-e', '-c', "DROP ROLE IF EXISTS fred, wilma, \"Flintstones\", \"Wilmas\", \"All Users\"", 'postgres'
   end
 
   def stop_pg_server
-    log_and_run 'pg_ctl', '-w', '-o', "-k .", '-D', 'temp/pg_data', 'stop'
+    log_and_run 'pg_ctl', '-w', '-o', "-k.", '-D', 'temp/pg_data', 'stop'
   end
 
   def setup
