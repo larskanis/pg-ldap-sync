@@ -32,6 +32,7 @@ require 'pg_ldap_sync'
 
 module PgLdapSync
 class Application
+  class LdapError < RuntimeError; end
   attr_accessor :config_fname
   attr_accessor :log
   attr_accessor :test
@@ -77,7 +78,7 @@ class Application
     ldap_user_conf = @config[:ldap_users]
 
     users = []
-    @ldap.search(:base => ldap_user_conf[:base], :filter => ldap_user_conf[:filter]) do |entry|
+    res = @ldap.search(:base => ldap_user_conf[:base], :filter => ldap_user_conf[:filter]) do |entry|
       name = entry[ldap_user_conf[:name_attribute]].first
 
       unless name
@@ -95,6 +96,7 @@ class Application
         end
       end
     end
+    raise LdapError, "LDAP: #{@ldap.get_operation_result.message}" unless res
     return users
   end
 
@@ -102,7 +104,7 @@ class Application
     ldap_group_conf = @config[:ldap_groups]
 
     groups = []
-    @ldap.search(:base => ldap_group_conf[:base], :filter => ldap_group_conf[:filter]) do |entry|
+    res = @ldap.search(:base => ldap_group_conf[:base], :filter => ldap_group_conf[:filter]) do |entry|
       name = entry[ldap_group_conf[:name_attribute]].first
 
       unless name
@@ -120,6 +122,7 @@ class Application
         end
       end
     end
+    raise LdapError, "LDAP: #{@ldap.get_operation_result.message}" unless res
     return groups
   end
 
