@@ -58,7 +58,7 @@ class Application
       errors.each do |err|
         log.fatal "error in #{fname}: [#{err.path}] #{err.message}"
       end
-      exit -1
+      exit(-1)
     end
   end
 
