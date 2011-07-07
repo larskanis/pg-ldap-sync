@@ -15,7 +15,7 @@ class TestPgLdapSync < Test::Unit::TestCase
 
   def start_ldap_server
     yaml_fname = File.join(File.dirname(__FILE__), "fixtures/ldapdb.yaml")
-    directory = File.open(yaml_fname){|f| YAML::load(f.read) }
+    @directory = File.open(yaml_fname){|f| YAML::load(f.read) }
 
     # Listen for incoming LDAP connections. For each one, create a Connection
     # object, which will invoke a HashOperation object for each request.
@@ -28,7 +28,7 @@ class TestPgLdapSync < Test::Unit::TestCase
     # :ssl_cert_file    => "cert.pem",
     # :ssl_on_connect   => true,
       :operation_class  => HashOperation,
-      :operation_args   => [directory]
+      :operation_args   => [@directory]
     )
     @ldap_server.run_tcpserver
   end
@@ -62,6 +62,10 @@ class TestPgLdapSync < Test::Unit::TestCase
     stop_ldap_server
     stop_pg_server
   end
+  
+  def psqlre(*args)
+    /^\s*#{args[0]}[ |]*#{args[1]}[ |\{"]*#{args[2..-1].join('[", ]+')}["\}\s]*$/
+  end
 
   def test_sanity
     PgLdapSync::Application.run(%w[-c test/fixtures/config-ldapdb.yaml -vv])
@@ -70,10 +74,22 @@ class TestPgLdapSync < Test::Unit::TestCase
     psql_du = `psql -c \\\\du postgres`
     puts psql_du
     
-    assert_match(/All Users.*Cannot login.*{}/, psql_du)
-    assert_match(/Flintstones.*Cannot login.*{}/, psql_du)
-    assert_match(/Wilmas.*Cannot login.*All Users/, psql_du)
-    assert_match(/fred.*All Users.*Flintstones/, psql_du)
-    assert_match(/wilma.*Flintstones.*Wilmas/, psql_du)
+    assert_match(psqlre('All Users','Cannot login'), psql_du)
+    assert_match(psqlre('Flintstones','Cannot login'), psql_du)
+    assert_match(psqlre('Wilmas','Cannot login','All Users'), psql_du)
+    assert_match(psqlre('fred','','All Users','Flintstones'), psql_du)
+    assert_match(psqlre('wilma','','Flintstones','Wilmas'), psql_du)
+    
+    @directory['cn=Flintstones,dc=example,dc=com']['member'].pop
+    
+    PgLdapSync::Application.run(%w[-c test/fixtures/config-ldapdb.yaml -vv])
+    psql_du = `psql -c \\\\du postgres`
+    puts psql_du
+    
+    assert_match(psqlre('All Users','Cannot login'), psql_du)
+    assert_match(psqlre('Flintstones','Cannot login'), psql_du)
+    assert_match(psqlre('Wilmas','Cannot login','All Users'), psql_du)
+    assert_match(psqlre('fred','','All Users','Flintstones'), psql_du)
+    assert_match(psqlre('wilma','','Wilmas'), psql_du)
   end
 end
