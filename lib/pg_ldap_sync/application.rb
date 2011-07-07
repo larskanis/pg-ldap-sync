@@ -132,7 +132,7 @@ class Application
     pg_users_conf = @config[:pg_users]
 
     users = []
-    res = @pgconn.exec "SELECT rolname FROM pg_roles WHERE #{pg_users_conf[:filter]}"
+    res = pg_exec "SELECT rolname FROM pg_roles WHERE #{pg_users_conf[:filter]}"
     res.each do |tuple|
       user = PgRole.new tuple[0]
       log.info{ "found pg-user: #{user.name.inspect}"}
@@ -145,9 +145,9 @@ class Application
     pg_groups_conf = @config[:pg_groups]
 
     groups = []
-    res = @pgconn.exec "SELECT rolname, oid FROM pg_roles WHERE #{pg_groups_conf[:filter]}"
+    res = pg_exec "SELECT rolname, oid FROM pg_roles WHERE #{pg_groups_conf[:filter]}"
     res.each do |tuple|
-      res2 = @pgconn.exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{PGconn.escape(tuple[1])}"
+      res2 = pg_exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{PGconn.escape(tuple[1])}"
       member_names = res2.map{|row| row[0] }
       group = PgRole.new tuple[0], member_names
       log.info{ "found pg-group: #{group.name.inspect} with members: #{member_names.inspect}"}
@@ -209,20 +209,25 @@ class Application
     return roles
   end
 
-  def pg_exec(sql)
+  def pg_exec_modify(sql)
     log.info{ "SQL: #{sql}" }
     unless self.test
-      @pgconn.exec sql
+      res = @pgconn.exec sql
     end
+  end
+
+  def pg_exec(sql)
+    res = @pgconn.exec sql
+    (0...res.num_tuples).map{|t| (0...res.num_fields).map{|i| res.getvalue(t, i) } }
   end
 
   def create_pg_role(role)
     pg_conf = @config[role.type==:user ? :pg_users : :pg_groups]
-    pg_exec "CREATE ROLE \"#{role.name}\" #{pg_conf[:create_options]}"
+    pg_exec_modify "CREATE ROLE \"#{role.name}\" #{pg_conf[:create_options]}"
   end
 
   def drop_pg_role(role)
-    pg_exec "DROP ROLE \"#{role.name}\""
+    pg_exec_modify "DROP ROLE \"#{role.name}\""
   end
 
   def sync_roles_to_pg(roles)
@@ -285,12 +290,12 @@ class Application
   def grant_membership(role_name, add_members)
     pg_conf = @config[:pg_groups]
     add_members_escaped = add_members.map{|m| "\"#{m}\"" }.join(",")
-    pg_exec "GRANT \"#{role_name}\" TO #{add_members_escaped} #{pg_conf[:grant_options]}"
+    pg_exec_modify "GRANT \"#{role_name}\" TO #{add_members_escaped} #{pg_conf[:grant_options]}"
   end
 
   def revoke_membership(role_name, rm_members)
     rm_members_escaped = rm_members.map{|m| "\"#{m}\"" }.join(",")
-    pg_exec "REVOKE \"#{role_name}\" FROM #{rm_members_escaped}"
+    pg_exec_modify "REVOKE \"#{role_name}\" FROM #{rm_members_escaped}"
   end
 
   def sync_membership_to_pg(memberships)
