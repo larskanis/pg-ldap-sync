@@ -19,8 +19,8 @@ pg_connection:
 # needed for postgres-pr:
 #   host: localhost
 #   port: 54321
-#   user: username
-#   password: secret
+#   user: insert_your_username_here
+#   password:
 
 pg_users:
   filter: rolcanlogin AND NOT rolsuper
