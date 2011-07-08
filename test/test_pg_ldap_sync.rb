@@ -62,7 +62,7 @@ class TestPgLdapSync < Test::Unit::TestCase
     stop_ldap_server
     stop_pg_server
   end
-  
+
   def psqlre(*args)
     /^\s*#{args[0]}[ |]*#{args[1]}[ |\{"]*#{args[2..-1].join('[", ]+')}["\}\s]*$/
   end
@@ -73,23 +73,40 @@ class TestPgLdapSync < Test::Unit::TestCase
     ENV['LC_MESSAGES'] = 'C'
     psql_du = `psql -c \\\\du postgres`
     puts psql_du
-    
+
     assert_match(psqlre('All Users','Cannot login'), psql_du)
     assert_match(psqlre('Flintstones','Cannot login'), psql_du)
     assert_match(psqlre('Wilmas','Cannot login','All Users'), psql_du)
     assert_match(psqlre('fred','','All Users','Flintstones'), psql_du)
     assert_match(psqlre('wilma','','Flintstones','Wilmas'), psql_du)
-    
+
+    # revoke membership of 'wilma' to 'Flintstones'
     @directory['cn=Flintstones,dc=example,dc=com']['member'].pop
-    
+
     PgLdapSync::Application.run(%w[-c test/fixtures/config-ldapdb.yaml -vv])
     psql_du = `psql -c \\\\du postgres`
     puts psql_du
-    
+
     assert_match(psqlre('All Users','Cannot login'), psql_du)
     assert_match(psqlre('Flintstones','Cannot login'), psql_du)
     assert_match(psqlre('Wilmas','Cannot login','All Users'), psql_du)
     assert_match(psqlre('fred','','All Users','Flintstones'), psql_du)
     assert_match(psqlre('wilma','','Wilmas'), psql_du)
+
+    # rename role 'wilma'
+    @directory['cn=Wilma Flintstone,dc=example,dc=com']['sAMAccountName'] = ['Wilma Flintstone']
+    # re-add 'Wilma' to 'Flintstones'
+    @directory['cn=Flintstones,dc=example,dc=com']['member'] << 'cn=Wilma Flintstone,dc=example,dc=com'
+
+    PgLdapSync::Application.run(%w[-c test/fixtures/config-ldapdb.yaml -vv])
+    psql_du = `psql -c \\\\du postgres`
+    puts psql_du
+
+    assert_match(psqlre('All Users','Cannot login'), psql_du)
+    assert_match(psqlre('Flintstones','Cannot login'), psql_du)
+    assert_match(psqlre('Wilmas','Cannot login','All Users'), psql_du)
+    assert_match(psqlre('fred','','All Users','Flintstones'), psql_du)
+    assert_no_match(/wilma/, psql_du)
+    assert_match(psqlre('Wilma Flintstone','','Flintstones','Wilmas'), psql_du)
   end
 end

@@ -230,18 +230,10 @@ class Application
     pg_exec_modify "DROP ROLE \"#{role.name}\""
   end
 
-  def sync_roles_to_pg(roles)
-    roles.sort{|a,b|
-      t = b.state.to_s<=>a.state.to_s
-      t = a.name<=>b.name if t==0
-      t
-    }.each do |role|
-      case role.state
-      when :create
-        create_pg_role(role)
-      when :drop
-        drop_pg_role(role)
-      end
+  def sync_roles_to_pg(roles, for_state)
+    roles.sort{|a,b| a.name<=>b.name }.each do |role|
+      create_pg_role(role) if role.state==:create && for_state==:create
+      drop_pg_role(role) if role.state==:drop && for_state==:drop
     end
   end
 
@@ -298,20 +290,17 @@ class Application
     pg_exec_modify "REVOKE \"#{role_name}\" FROM #{rm_members_escaped}"
   end
 
-  def sync_membership_to_pg(memberships)
+  def sync_membership_to_pg(memberships, for_state)
     grants = {}
-    memberships.select{|ms| ms.state==:grant }.each do |ms|
+    memberships.select{|ms| ms.state==for_state }.each do |ms|
       grants[ms.role_name] ||= []
       grants[ms.role_name] << ms.has_member
     end
-    revokes = {}
-    memberships.select{|ms| ms.state==:revoke }.each do |ms|
-      revokes[ms.role_name] ||= []
-      revokes[ms.role_name] << ms.has_member
-    end
 
-    grants.each{|role_name, members| grant_membership(role_name, members) }
-    revokes.each{|role_name, members| revoke_membership(role_name, members) }
+    grants.each do |role_name, members|
+      grant_membership(role_name, members) if for_state==:grant
+      revoke_membership(role_name, members) if for_state==:revoke
+    end
   end
 
   def start!
@@ -334,10 +323,12 @@ class Application
     # compare LDAP to PG memberships
     mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
 
-    # apply changes on roles
-    sync_roles_to_pg(mroles)
-    # apply changes on memberships
-    sync_membership_to_pg(mmemberships)
+    # drop/revoke roles/memberships first
+    sync_membership_to_pg(mmemberships, :revoke)
+    sync_roles_to_pg(mroles, :drop)
+    # create/grant roles/memberships
+    sync_roles_to_pg(mroles, :create)
+    sync_membership_to_pg(mmemberships, :grant)
 
     @pgconn.close
   end
