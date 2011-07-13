@@ -1,6 +1,6 @@
 = Use LDAP permissions in PostgreSQL
 
-* Homepage: http://github.com/larskanis/pg-ldap-sync
+* http://github.com/larskanis/pg-ldap-sync
 
 == DESCRIPTION:
 
