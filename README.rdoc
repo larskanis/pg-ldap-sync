@@ -11,25 +11,21 @@ However, for any method the user must already exist in the database,
 before the authentication can be used. There is currently
 no authorization of database users directly based on LDAP.
 
-This program solves the issue by synchronizing users, groups and
-memberships from LDAP to PostgreSQL.
+This program helps to solve the issue by synchronizing users,
+groups and their memberships from LDAP to PostgreSQL.
+Access to LDAP is read-only. <tt>pg_ldap_sync</tt> issues proper
+CREATE ROLE, DROP ROLE, GRANT and REVOKE commands to synchronize
+users and groups.
+
 It is meant to be started as a cron job.
 
-== FEATURES/PROBLEMS:
+== FEATURES:
 
 * Configurable per YAML config file
-* Use Active Directory as LDAP-Server
+* Can use Active Directory as LDAP-Server
+* Nested groups/roles supported
 * Runs with pg.gem (C-library) or postgres-pr.gem (pure Ruby)
-* Should run on any platform when using postgres-pr.gem
-
-* There is currently no way to set certain user attributes in PG
-  based on individual attributes in LDAP
-
-== SYNOPSIS:
-
-Create a config file based on <tt>config/sample-config.yaml</tt> .
-
-  pg_ldap_sync -c my_config.yaml -vv -t
+* Test mode which doesn't do any changes to the DBMS
 
 == REQUIREMENTS:
 
@@ -40,17 +36,31 @@ Create a config file based on <tt>config/sample-config.yaml</tt> .
 
 Install Ruby and rubygems:
 * on Windows: http://rubyinstaller.org
-* on Debian: <tt>apt-get install ruby rubygems</tt>
+* on Debian/Ubuntu: <tt>apt-get install ruby rubygems</tt>
 
-Install pg-ldap-sync and a database driver for PostgreSQL:
-* <tt>gem install pg-ldap-sync pg</tt>
-* or <tt>gem install pg-ldap-sync postgres-pr</tt> for the
-  pure ruby version with less connection options than <tt>pg</tt>
+Install pg-ldap-sync and a database connector for PostgreSQL:
+  gem install pg-ldap-sync pg
+You may also use the pure ruby postgres-connector which is less mature,
+but doesn't need compilation:
+  gem install pg-ldap-sync postgres-pr
 
-Or install from Git:
+=== Install from Git:
   git clone https://github.com/larskanis/pg-ldap-sync.git
   cd pg-ldap-sync
+  gem install hoe
   rake install_gem
+
+== USAGE:
+
+Create a config file based on <tt>config/sample-config.yaml</tt> .
+Run in test-mode:
+
+  pg_ldap_sync -c my_config.yaml -vv -t
+
+Run in modify-mode:
+
+  pg_ldap_sync -c my_config.yaml -vv
+
 
 == TEST:
 There is a small test suite in the <tt>test</tt> directory that runs
@@ -60,6 +70,10 @@ commands are in the <tt>PATH</tt>. Then:
 
   cd pg-ldap-sync
   rake test
+
+== ISSUES:
+* There is currently no way to set certain user attributes in PG
+  based on individual attributes in LDAP (expiration date etc.)
 
 
 == LICENSE:
