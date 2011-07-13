@@ -5,6 +5,7 @@ README.rdoc
 Rakefile
 bin/pg_ldap_sync
 config/sample-config.yaml
+config/sample-config2.yaml
 config/schema.yaml
 lib/pg_ldap_sync.rb
 lib/pg_ldap_sync/application.rb
