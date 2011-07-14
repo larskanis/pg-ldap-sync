@@ -16,9 +16,9 @@ ldap_groups:
 
 pg_connection:
   dbname: postgres
+  host: localhost
+  port: 54321
 # needed for postgres-pr:
-#   host: localhost
-#   port: 54321
 #   user: insert_your_username_here
 #   password:
 

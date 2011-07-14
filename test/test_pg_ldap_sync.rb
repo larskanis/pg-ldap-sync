@@ -41,9 +41,9 @@ class TestPgLdapSync < Test::Unit::TestCase
     @port = 54321
     ENV['PGPORT'] = @port.to_s
     ENV['PGHOST'] = 'localhost'
-    unless File.exist?('temp/pg_data')
+    unless File.exist?('temp/pg_data/PG_VERSION')
       FileUtils.mkdir_p 'temp/pg_data'
-      log_and_run 'initdb', '-D', 'temp/pg_data'
+      log_and_run 'initdb', '-D', 'temp/pg_data', '--no-locale'
     end
     log_and_run 'pg_ctl', '-w', '-o', "-k.", '-D', 'temp/pg_data', 'start'
     log_and_run 'psql', '-e', '-c', "DROP ROLE IF EXISTS fred, wilma, \"Flintstones\", \"Wilmas\", \"All Users\"", 'postgres'
@@ -66,13 +66,22 @@ class TestPgLdapSync < Test::Unit::TestCase
   def psqlre(*args)
     /^\s*#{args[0]}[ |]*#{args[1]}[ |\{"]*#{args[2..-1].join('[", ]+')}["\}\s]*$/
   end
+  
+  def exec_psql_du
+    text = if RUBY_PLATFORM=~/mingw|mswin/
+      `psql -c \\du postgres`
+    else
+      `psql -c \\\\du postgres`
+    end
+    puts text
+    return text
+  end
 
   def test_sanity
     PgLdapSync::Application.run(%w[-c test/fixtures/config-ldapdb.yaml -vv])
 
     ENV['LC_MESSAGES'] = 'C'
-    psql_du = `psql -c \\\\du postgres`
-    puts psql_du
+    psql_du = exec_psql_du
 
     assert_match(psqlre('All Users','Cannot login'), psql_du)
     assert_match(psqlre('Flintstones','Cannot login'), psql_du)
@@ -84,8 +93,7 @@ class TestPgLdapSync < Test::Unit::TestCase
     @directory['cn=Flintstones,dc=example,dc=com']['member'].pop
 
     PgLdapSync::Application.run(%w[-c test/fixtures/config-ldapdb.yaml -vv])
-    psql_du = `psql -c \\\\du postgres`
-    puts psql_du
+    psql_du = exec_psql_du
 
     assert_match(psqlre('All Users','Cannot login'), psql_du)
     assert_match(psqlre('Flintstones','Cannot login'), psql_du)
@@ -99,8 +107,7 @@ class TestPgLdapSync < Test::Unit::TestCase
     @directory['cn=Flintstones,dc=example,dc=com']['member'] << 'cn=Wilma Flintstone,dc=example,dc=com'
 
     PgLdapSync::Application.run(%w[-c test/fixtures/config-ldapdb.yaml -vv])
-    psql_du = `psql -c \\\\du postgres`
-    puts psql_du
+    psql_du = exec_psql_du
 
     assert_match(psqlre('All Users','Cannot login'), psql_du)
     assert_match(psqlre('Flintstones','Cannot login'), psql_du)
