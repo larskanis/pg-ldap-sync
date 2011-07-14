@@ -32,10 +32,10 @@ It is meant to be started as a cron job.
 
 == REQUIREMENTS:
 
-* Ruby-1.8.7, Ruby-1.9.2, jRuby, Rubinius-1.2 or better
+* Ruby-1.8.7, Ruby-1.9.2, JRuby-1.2, Rubinius-1.2 or better
 * Rubygems-1.3.5+
-* LDAP-v2 or v3 server
-* PostgreSQL-Server v8.1+
+* LDAP-v3 server
+* PostgreSQL-server v8.1+
 
 == INSTALL:
 
