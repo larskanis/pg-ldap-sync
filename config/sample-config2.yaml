@@ -21,6 +21,8 @@ ldap_users:
   filter: (&(objectClass=person)(objectClass=organizationalPerson)(givenName=*)(sn=*)(sAMAccountName=*))
   # this attribute is used as PG role name
   name_attribute: sAMAccountName
+  # lowercase name for use as PG role name
+  lowercase_name: true
 
 # Search parameters for LDAP groups which should be synchronized
 ldap_groups:
@@ -28,6 +30,8 @@ ldap_groups:
   filter: (cn=company.*)
   # this attribute is used as PG role name
   name_attribute: cn
+  # lowercase name for use as PG role name
+  lowercase_name: false
   # this attribute must reference to all member DN's of the given group
   member_attribute: member
 

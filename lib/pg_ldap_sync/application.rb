@@ -85,6 +85,7 @@ class Application
         log.warn "user attribute #{ldap_user_conf[:name_attribute].inspect} not defined for #{entry.dn}"
         next
       end
+      name.downcase! if ldap_user_conf[:lowercase_name]
 
       log.info "found user-dn: #{entry.dn}"
       user = LdapRole.new name, entry.dn
@@ -111,6 +112,7 @@ class Application
         log.warn "user attribute #{ldap_group_conf[:name_attribute].inspect} not defined for #{entry.dn}"
         next
       end
+      name.downcase! if ldap_group_conf[:lowercase_name]
 
       log.info "found group-dn: #{entry.dn}"
       group = LdapRole.new name, entry.dn, entry[ldap_group_conf[:member_attribute]]
