@@ -31,7 +31,7 @@ ldap_groups:
   member_attribute: member
 
 # Connection parameters to PostgreSQL server
-# see also: http://rubydoc.info/gems/pg/0.11.0/PGconn#initialize-instance_method
+# see also: http://rubydoc.info/gems/pg/PG/Connection#initialize-instance_method
 pg_connection:
   host:
   dbname: postgres

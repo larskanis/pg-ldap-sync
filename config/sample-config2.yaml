@@ -1,6 +1,7 @@
 # With this sample config the distinction between LDAP-synchronized
 # groups/users from is done by the membership to ldap_user and
-# ldap_group. These two roles has to be defined manally.
+# ldap_group. These two roles has to be defined manally before
+# pg_ldap_sync can run.
 
 # Connection parameters to LDAP server
 # see also: http://net-ldap.rubyforge.org/Net/LDAP.html#method-c-new
@@ -31,7 +32,7 @@ ldap_groups:
   member_attribute: member
 
 # Connection parameters to PostgreSQL server
-# see also: http://rubydoc.info/gems/pg/0.11.0/PGconn#initialize-instance_method
+# see also: http://rubydoc.info/gems/pg/PG/Connection#initialize-instance_method
 pg_connection:
   host:
   dbname: postgres
