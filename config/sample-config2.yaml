@@ -7,11 +7,13 @@
 # see also: http://net-ldap.rubyforge.org/Net/LDAP.html#method-c-new
 ldap_connection:
   host: ldapserver
-  port: 389
+  port: 636
   auth:
     method: :simple
     username: CN=username,OU=!Serviceaccounts,OU=company,DC=company,DC=de
     password: secret
+  encryption:
+    method: :simple_tls
 
 # Search parameters for LDAP users which should be synchronized
 ldap_users:
