@@ -57,7 +57,11 @@ but doesn't need compilation:
 
 == USAGE:
 
-Create a config file based on <tt>config/sample-config.yaml</tt> .
+Create a config file based on
+{config/sample-config.yaml}[https://github.com/larskanis/pg-ldap-sync/blob/master/config/sample-config.yaml]
+or
+{config/sample-config2.yaml}[https://github.com/larskanis/pg-ldap-sync/blob/master/config/sample-config2.yaml]
+
 Run in test-mode:
 
   pg_ldap_sync -c my_config.yaml -vv -t
