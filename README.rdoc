@@ -59,7 +59,7 @@ but doesn't need compilation:
 
 Create a config file based on
 {config/sample-config.yaml}[https://github.com/larskanis/pg-ldap-sync/blob/master/config/sample-config.yaml]
-or
+or even better
 {config/sample-config2.yaml}[https://github.com/larskanis/pg-ldap-sync/blob/master/config/sample-config2.yaml]
 
 Run in test-mode:
