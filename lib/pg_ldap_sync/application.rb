@@ -214,7 +214,13 @@ class Application
   def pg_exec_modify(sql)
     log.info{ "SQL: #{sql}" }
     unless self.test
-      res = @pgconn.exec sql
+      begin
+        res = @pgconn.exec sql
+      rescue PG::DuplicateObject => dup
+        log.warn{ dup }
+      rescue PG::DependentObjectsStillExist => dep
+        log.warn{ dep }
+      end
     end
   end
 
