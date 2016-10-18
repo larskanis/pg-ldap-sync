@@ -79,6 +79,7 @@ class Application
 
     users = []
     res = @ldap.search(:base => ldap_user_conf[:base], :filter => ldap_user_conf[:filter]) do |entry|
+      entry.dn = entry.dn.downcase
       name = entry[ldap_user_conf[:name_attribute]].first
 
       unless name
@@ -106,6 +107,7 @@ class Application
 
     groups = []
     res = @ldap.search(:base => ldap_group_conf[:base], :filter => ldap_group_conf[:filter]) do |entry|
+      entry.dn = entry.dn.downcase
       name = entry[ldap_group_conf[:name_attribute]].first
 
       unless name
@@ -115,7 +117,7 @@ class Application
       name.downcase! if ldap_group_conf[:lowercase_name]
 
       log.info "found group-dn: #{entry.dn}"
-      group = LdapRole.new name, entry.dn, entry[ldap_group_conf[:member_attribute]]
+      group = LdapRole.new name, entry.dn, entry[ldap_group_conf[:member_attribute]].map!(&:downcase)
       groups << group
       entry.each do |attribute, values|
         log.debug "   #{attribute}:"
@@ -211,6 +213,64 @@ class Application
     return roles
   end
 
+  def match_users_groups(roles)
+    
+    # Find out if there are matching users and groups 
+    # Process Users
+    roles.each do |ru|
+      next if ru.type == :group
+
+      # Find Matching Group, if any
+      roles.each do |rg|
+        next if rg.type == :user
+        next if rg.name != ru.name
+        
+        if ru.state == :create && rg.state == :keep
+          ru.state = :alter
+          log.info{ "Changed #{ru.state} #{ru.type}: #{ru.name}" }
+        elsif ru.state == :keep && rg.state == :create
+          rg.state = :keep
+          log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
+        elsif ru.state == :create && rg.state == :drop
+          ru.state = :alter
+          rg.state = :keep
+          log.info{ "Changed #{ru.state} #{ru.type}: #{ru.name}" }
+          log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
+        elsif ru.state == :drop && rg.state == :create
+          rg.state = :alter
+          ru.state = :keep
+          log.info{ "Changed #{ru.state} #{ru.type}: #{ru.name}" }
+          log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
+        elsif ru.state == :drop && rg.state == :keep
+          rg.state = :alter
+          ru.state = :keep
+          log.info{ "Changed #{ru.state} #{ru.type}: #{ru.name}" }
+          log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
+        elsif ru.state == :keep && rg.state == :drop
+          ru.state = :alter
+          rg.state = :keep
+          log.info{ "Changed #{ru.state} #{ru.type}: #{ru.name}" }
+          log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
+        elsif ru.state == :create && rg.state == :create
+          rg.state = :keep;
+          log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
+        elsif ru.state == :drop && rg.state == :drop
+          rg.state = :keep
+          log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
+        end
+        # The ru.state == :keep && rg.state == :keep we don't care about as no changes are needed
+      end
+    end
+
+    log.info{
+      "Revised user stat: create: #{roles.count{|r| r.state==:create && r.type==:user }} drop: #{roles.count{|r| r.state==:drop && r.type==:user }} alter: #{roles.count{|r| r.state==:alter && r.type==:user}} keep: #{roles.count{|r| r.state==:keep && r.type==:user}}"
+    }
+    log.info{
+      "Revised group stat: create: #{roles.count{|r| r.state==:create && r.type==:group }} drop: #{roles.count{|r| r.state==:drop && r.type==:group }} alter: #{roles.count{|r| r.state==:alter && r.type==:group}} keep: #{roles.count{|r| r.state==:keep && r.type==:group}}"
+    }
+    return roles
+  end
+
   def pg_exec_modify(sql)
     log.info{ "SQL: #{sql}" }
     unless self.test
@@ -232,9 +292,19 @@ class Application
     pg_exec_modify "DROP ROLE \"#{role.name}\""
   end
 
+  def alter_pg_user(role)
+    pg_exec_modify "ALTER ROLE \"#{role.name}\" LOGIN"
+  end
+
+  def alter_pg_group(role)
+    pg_exec_modify "ALTER ROLE \"#{role.name}\" NOLOGIN"
+  end
+
   def sync_roles_to_pg(roles, for_state)
     roles.sort{|a,b| a.name<=>b.name }.each do |role|
       create_pg_role(role) if role.state==:create && for_state==:create
+      alter_pg_user(role) if role.state==:alter && for_state==:alter && role.type==:user
+      alter_pg_group(role) if role.state==:alter && for_state==:alter && role.type==:group
       drop_pg_role(role) if role.state==:drop && for_state==:drop
     end
   end
@@ -321,6 +391,7 @@ class Application
     # compare LDAP to PG users and groups
     mroles = match_roles(ldap_users, pg_users, :user)
     mroles += match_roles(ldap_groups, pg_groups, :group)
+    mroles = match_users_groups(mroles)
 
     # compare LDAP to PG memberships
     mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
@@ -328,6 +399,8 @@ class Application
     # drop/revoke roles/memberships first
     sync_membership_to_pg(mmemberships, :revoke)
     sync_roles_to_pg(mroles, :drop)
+    # Make Login if this used to be a non-login role and Non-Login if this used to be a login role
+    sync_roles_to_pg(mroles, :alter)
     # create/grant roles/memberships
     sync_roles_to_pg(mroles, :create)
     sync_membership_to_pg(mmemberships, :grant)

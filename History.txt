@@ -1,3 +1,8 @@
+=== 0.1.2 / 2016-10-18
+
+* Add ability to have ldap groups and users with the same name merge into a single PG role
+* Fixed to make dn's case insensitive as LDAP is case aware but not case sensitive
+
 === 0.1.1 / 2012-11-15
 
 * Add ability to lowercase the LDAP name for use as PG role name

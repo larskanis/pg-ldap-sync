@@ -9,7 +9,7 @@ ldap_users:
   name_attribute: sAMAccountName
 
 ldap_groups:
-  base: dc=example,dc=com
+  base: ou=groups,dc=example,dc=com
   filter: (member=*)
   name_attribute: cn
   member_attribute: member
@@ -27,6 +27,7 @@ pg_users:
   create_options: LOGIN
 
 pg_groups:
-  filter: NOT rolcanlogin
+  #filter: NOT rolcanlogin
+  filter: rolname IN (SELECT b.rolname FROM pg_auth_members a LEFT JOIN pg_authid b ON b.oid = a.roleid UNION SELECT rolname FROM pg_roles WHERE NOT rolcanlogin) AND NOT rolsuper
   create_options: NOLOGIN
   grant_options:
