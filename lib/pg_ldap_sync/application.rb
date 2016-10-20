@@ -229,30 +229,30 @@ class Application
           ru.state = :alter
           log.info{ "Changed #{ru.state} #{ru.type}: #{ru.name}" }
         elsif ru.state == :keep && rg.state == :create
-          rg.state = :keep
+          rg.state = :group_add
           log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
         elsif ru.state == :create && rg.state == :drop
           ru.state = :alter
-          rg.state = :keep
+          rg.state = :group_drop
           log.info{ "Changed #{ru.state} #{ru.type}: #{ru.name}" }
           log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
         elsif ru.state == :drop && rg.state == :create
           rg.state = :alter
-          ru.state = :keep
+          ru.state = :group_drop
           log.info{ "Changed #{ru.state} #{ru.type}: #{ru.name}" }
           log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
         elsif ru.state == :drop && rg.state == :keep
           rg.state = :alter
-          ru.state = :keep
+          ru.state = :group_drop
           log.info{ "Changed #{ru.state} #{ru.type}: #{ru.name}" }
           log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
         elsif ru.state == :keep && rg.state == :drop
           ru.state = :alter
-          rg.state = :keep
+          rg.state = :group_drop
           log.info{ "Changed #{ru.state} #{ru.type}: #{ru.name}" }
           log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
         elsif ru.state == :create && rg.state == :create
-          rg.state = :keep;
+          rg.state = :group_add;
           log.info{ "Changed #{rg.state} #{rg.type}: #{rg.name}" }
         elsif ru.state == :drop && rg.state == :drop
           rg.state = :keep
@@ -274,7 +274,13 @@ class Application
   def pg_exec_modify(sql)
     log.info{ "SQL: #{sql}" }
     unless self.test
-      res = @pgconn.exec sql
+      begin
+        res = @pgconn.exec sql
+      rescue PG::DuplicateObject => dup
+        log.warn{ dup }
+      rescue PG::DependentObjectStillExists => dep
+        log.warn{ dep }
+      end
     end
   end
 
@@ -294,17 +300,43 @@ class Application
 
   def alter_pg_user(role)
     pg_exec_modify "ALTER ROLE \"#{role.name}\" LOGIN"
+    set_pg_group(role)
+    revoke_pg_group(role)
   end
 
   def alter_pg_group(role)
     pg_exec_modify "ALTER ROLE \"#{role.name}\" NOLOGIN"
+    set_pg_group(role)
+    revoke_pg_group(role)
+  end
+
+  def revoke_pg_group(role)
+    pg_conf = @config[role.type!=:user ? :pg_users : :pg_groups]
+    if pg_conf[:grant_this_group] != nil
+      pg_exec_modify "REVOKE \"#{pg_conf[:grant_this_group]}\" FROM \"#{role.name}\""
+    end
+  end
+
+  def set_pg_group(role)
+    pg_conf = @config[role.type==:user ? :pg_users : :pg_groups]
+    if pg_conf[:grant_this_group] != nil
+      if role.state == :group_add || role.state == :alter
+        pg_exec_modify "GRANT \"#{pg_conf[:grant_this_group]}\" TO \"#{role.name}\""
+      else
+        pg_exec_modify "REVOKE \"#{pg_conf[:grant_this_group]}\" FROM \"#{role.name}\""
+      end
+    end
   end
 
   def sync_roles_to_pg(roles, for_state)
     roles.sort{|a,b| a.name<=>b.name }.each do |role|
       create_pg_role(role) if role.state==:create && for_state==:create
+      set_pg_group(role) if role.state==:group_add && for_state==:group && role.type==:user
+      set_pg_group(role) if role.state==:group_drop && for_state==:group && role.type==:user
+      set_pg_group(role) if role.state==:group_add && for_state==:group && role.type==:group
+      set_pg_group(role) if role.state==:group_drop && for_state==:group && role.type==:group
       alter_pg_user(role) if role.state==:alter && for_state==:alter && role.type==:user
-      alter_pg_group(role) if role.state==:alter && for_state==:alter && role.type==:group
+      alter_pg_group(role) if role.state==:alter && for_state==:group && role.type==:group
       drop_pg_role(role) if role.state==:drop && for_state==:drop
     end
   end
@@ -374,6 +406,31 @@ class Application
       revoke_membership(role_name, members) if for_state==:revoke
     end
   end
+  
+  def check_groups()
+      pg_users_conf = @config[:pg_users]
+      if pg_users_conf[:grant_this_group] != nil
+        check_make_group(pg_users_conf[:grant_this_group])
+      else
+        log.debug{"No Users LDAP group to Check/Create"}
+      end
+      pg_groups_conf = @config[:pg_groups]
+      if pg_groups_conf[:grant_this_group] != nil
+        check_make_group(pg_groups_conf[:grant_this_group])
+      else
+        log.debug{"No Groups LDAP group to Check/Create"}
+      end
+  end
+  
+  def check_make_group(group_name)
+    res = pg_exec "SELECT pr.rolname FROM pg_roles pr WHERE pr.rolname='#{group_name}'"
+    if res[0] == nil
+      log.debug{ "Creating Group: #{group_name}"}
+      pg_exec_modify "CREATE ROLE \"#{group_name}\""
+    else
+      log.info{ "Lookup Found Group: #{res[0][0]}"}
+    end
+  end
 
   def start!
     read_config_file(@config_fname)
@@ -395,6 +452,9 @@ class Application
 
     # compare LDAP to PG memberships
     mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
+    
+    # Check to see if grant_this_group exists and if not create the group
+    check_groups()
 
     # drop/revoke roles/memberships first
     sync_membership_to_pg(mmemberships, :revoke)
@@ -403,6 +463,8 @@ class Application
     sync_roles_to_pg(mroles, :alter)
     # create/grant roles/memberships
     sync_roles_to_pg(mroles, :create)
+    # Fix group memberships
+    sync_roles_to_pg(mroles, :group)
     sync_membership_to_pg(mmemberships, :grant)
 
     @pgconn.close

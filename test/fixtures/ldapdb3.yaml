@@ -1,0 +1,106 @@
+---
+dc=example,dc=com:
+  cn:
+  - Top object
+ou=groups,dc=example,dc=com:
+  cn:
+  - groups
+cn=Fred Flintstone,dc=example,dc=com:
+  cn:
+  - Fred Flintstone
+  mail:
+  - fred@bedrock.org
+  - fred.flintstone@bedrock.org
+  sn:
+  - Flintstone
+  sAMAccountName:
+  - fred
+cn=Wilma Flintstone,dc=example,dc=com:
+  cn:
+  - Wilma Flintstone
+  mail:
+  - wilma@bedrock.org
+  sAMAccountName:
+  - wilma
+cn=flintstones,ou=groups,dc=example,dc=com:
+  cn:
+  - Flintstones
+  member:
+  - cn=fred flintstone,dc=example,dc=com
+  - cn=Wilma Flintstone,dc=example,dc=com
+cn=Wilmas,ou=groups,dc=example,dc=com:
+  cn:
+  - Wilmas
+  member:
+  - cn=Wilma Flintstone,dc=example,dc=com
+cn=All Users,ou=groups,dc=example,dc=com:
+  cn:
+  - All Users
+  member:
+  - cn=Wilmas,ou=groups,dc=example,dc=com
+  - cn=Fred Flintstone,dc=example,dc=com
+cn=Betty Rubble,dc=example,dc=com:
+  cn:
+  - Betty Rubble
+  mail:
+  - betty@bedrock.org
+  - betty.rubble@bedrock.org
+  sAMAccountName:
+  - betty
+cn=rubble,dc=example,dc=com:
+  cn:
+  - rubble
+  mail:
+  - rubble@bedrock.org
+  sAMAccountName:
+  - rubble
+cn=rubble,ou=groups,dc=example,dc=com:
+  cn:
+  - rubble
+  member:
+  - cn=Betty Rubble,dc=example,dc=com
+cn=Pebbles Flintstone,dc=example,dc=com:
+  cn:
+  - Pebbles Flintstone
+  mail:
+  - pebbles@bedrock.org
+  - pebbles.flintstone@bedrock.org
+  sAMAccountName:
+  - pebbles
+cn=kids,dc=example,dc=com:
+  cn:
+  - kids
+  mail:
+  - kids@bedrock.org
+  sAMAccountName:
+  - kids
+cn=kids,ou=groups,dc=example,dc=com:
+  cn:
+  - kids
+  member:
+  - cn=Pebbles Flintstone,dc=example,dc=com
+cn=flintstone_kids,dc=example,dc=com:
+  cn:
+  - flintstone_kids
+  mail:
+  - flintstone_kids@bedrock.org
+  sAMAccountName:
+  - flintstone_kids
+cn=flintstone_kids,ou=groups,dc=example,dc=com:
+  cn:
+  - flintstone_kids
+  member:
+  - cn=Pebbles Flintstone,dc=example,dc=com
+cn=Bamm-Bamm Rubble,dc=example,dc=com:
+  cn:
+  - Bamm-Bamm Rubble
+  mail:
+  - bamm-bamm@bedrock.org
+  - bamm-bamm.rubble@bedrock.org
+  sAMAccountName:
+  - bamm-bamm
+cn=rubble_kids,ou=groups,dc=example,dc=com:
+  cn:
+  - rubble_kids
+  member:
+  - cn=Bamm-Bamm Rubble,dc=example,dc=com
