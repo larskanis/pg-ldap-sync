@@ -324,7 +324,7 @@ class TestPgLdapSync < Test::Unit::TestCase
     assert_match(psqlre('pebbles', '', 'kids','ldap_users'), psql_du)
     assert_match(psqlre('bamm-bamm', '', 'ldap_users','rubble_kids'), psql_du)
     assert_match(psqlre('betty', '', 'ldap_users','rubble'), psql_du)
-    assert_match(psqlre('rubble', '','ldap_users'), psql_du)
+    assert_match(psqlre('rubble', '','ldap_groups','ldap_users'), psql_du)
     assert_match(psqlre('rubble_kids', 'Cannot login', 'ldap_groups'), psql_du)
     assert_match(psqlre('kids', '','ldap_groups','ldap_users'), psql_du)
   end

@@ -157,6 +157,37 @@ class Application
       log.info{ "found pg-group: #{group.name.inspect} with members: #{member_names.inspect}"}
       groups << group
     end
+    
+    return groups
+  end
+
+  def search_pg_ldap_groups
+    pg_users_conf = @config[:pg_users]
+    pg_groups_conf = @config[:pg_groups]
+
+    in_group = ""
+    if pg_groups_conf[:grant_this_group] != nil
+      in_group += "'#{pg_groups_conf[:grant_this_group]}'"
+    end
+    if pg_users_conf[:grant_this_group] != nil
+      if in_group != ""
+        in_group += ", "
+      end
+      in_group += "'#{pg_users_conf[:grant_this_group]}'"
+    end
+    if pg_groups_conf[:grant_this_group] != nil || pg_users_conf[:grant_this_group] != nil
+      groups = []
+      res = pg_exec "SELECT rolname, oid FROM pg_roles WHERE rolname IN (#{in_group})"
+      res.each do |tuple|
+        res2 = pg_exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{PGconn.escape(tuple[1])}"
+        member_names = res2.map{|row| row[0] }
+        group = PgRole.new tuple[0], member_names
+        log.info{ "found pg-group: #{group.name.inspect} with members: #{member_names.inspect}"}
+        groups << group
+      end
+      groups = uniq_names groups
+    end
+    
     return groups
   end
 
@@ -301,27 +332,32 @@ class Application
   def alter_pg_user(role)
     pg_exec_modify "ALTER ROLE \"#{role.name}\" LOGIN"
     set_pg_group(role)
-    revoke_pg_group(role)
   end
 
   def alter_pg_group(role)
     pg_exec_modify "ALTER ROLE \"#{role.name}\" NOLOGIN"
     set_pg_group(role)
-    revoke_pg_group(role)
-  end
-
-  def revoke_pg_group(role)
-    pg_conf = @config[role.type!=:user ? :pg_users : :pg_groups]
-    if pg_conf[:grant_this_group] != nil
-      pg_exec_modify "REVOKE \"#{pg_conf[:grant_this_group]}\" FROM \"#{role.name}\""
-    end
   end
 
   def set_pg_group(role)
     pg_conf = @config[role.type==:user ? :pg_users : :pg_groups]
     if pg_conf[:grant_this_group] != nil
       if role.state == :group_add || role.state == :alter
-        pg_exec_modify "GRANT \"#{pg_conf[:grant_this_group]}\" TO \"#{role.name}\""
+        skip_grant = :false
+        if !@pg_ldap_groups.empty?
+          @pg_ldap_groups.each do |group|
+            if group.name == pg_conf[:grant_this_group]
+              group.member_names.each do |member|
+                if member == role.name
+                  skip_grant = :true
+                end
+              end
+            end
+          end
+        end
+        if skip_grant == :false
+          pg_exec_modify "GRANT \"#{pg_conf[:grant_this_group]}\" TO \"#{role.name}\""
+        end
       else
         pg_exec_modify "REVOKE \"#{pg_conf[:grant_this_group]}\" FROM \"#{role.name}\""
       end
@@ -444,6 +480,7 @@ class Application
     @pgconn = PGconn.connect @config[:pg_connection]
     pg_users = uniq_names search_pg_users
     pg_groups = uniq_names search_pg_groups
+    @pg_ldap_groups = search_pg_ldap_groups
 
     # compare LDAP to PG users and groups
     mroles = match_roles(ldap_users, pg_users, :user)
