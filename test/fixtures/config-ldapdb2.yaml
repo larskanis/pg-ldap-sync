@@ -1,0 +1,34 @@
+---
+ldap_connection:
+  host: localhost
+  port: 1389
+
+ldap_users:
+  base: dc=example,dc=com
+  filter: (&(cn=*)(sAMAccountName=*))
+  name_attribute: sAMAccountName
+
+ldap_groups:
+  base: dc=example,dc=com
+  filter: (member=*)
+  name_attribute: cn
+  member_attribute: member
+
+pg_connection:
+  dbname: postgres
+  host: localhost
+  port: 54321
+# needed for postgres-pr:
+#   user: insert_your_username_here
+#   password:
+
+pg_users:
+  filter: oid IN (SELECT pam.member FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.roleid WHERE pr.rolname='ldap_users')
+  create_options: LOGIN IN ROLE ldap_users
+  grant_this_group: ldap_users
+
+pg_groups:
+  filter: oid IN (SELECT pam.member FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.roleid WHERE pr.rolname='ldap_groups')
+  create_options: NOLOGIN IN ROLE ldap_groups
+  grant_options: 
+  grant_this_group: ldap_groups

@@ -54,6 +54,8 @@ mapping:
         required:  yes
       "create_options":
         type: str
+      "grant_this_group":
+        type: str
 
   "pg_groups":
     type: map
@@ -65,4 +67,6 @@ mapping:
       "create_options":
         type: str
       "grant_options":
+        type: str
+      "grant_this_group":
         type: str

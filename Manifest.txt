@@ -6,10 +6,16 @@ Rakefile
 bin/pg_ldap_sync
 config/sample-config.yaml
 config/sample-config2.yaml
+config/sample-config3.yaml
+config/sample-config4.yaml
 config/schema.yaml
 lib/pg_ldap_sync.rb
 lib/pg_ldap_sync/application.rb
 test/fixtures/config-ldapdb.yaml
+test/fixtures/config-ldapdb2.yaml
+test/fixtures/config-ldapdb3.yaml
+test/fixtures/config-ldapdb4.yaml
 test/fixtures/ldapdb.yaml
+test/fixtures/ldapdb3.yaml
 test/ldap_server.rb
 test/test_pg_ldap_sync.rb

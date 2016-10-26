@@ -1,0 +1,34 @@
+---
+ldap_connection:
+  host: localhost
+  port: 1389
+
+ldap_users:
+  base: dc=example,dc=com
+  filter: (&(cn=*)(sAMAccountName=*))
+  name_attribute: sAMAccountName
+
+ldap_groups:
+  base: ou=groups,dc=example,dc=com
+  filter: (member=*)
+  name_attribute: cn
+  member_attribute: member
+
+pg_connection:
+  dbname: postgres
+  host: localhost
+  port: 54321
+# needed for postgres-pr:
+#   user: insert_your_username_here
+#   password:
+
+pg_users:
+  filter: rolcanlogin AND NOT rolsuper
+  create_options: LOGIN
+  grant_this_group:
+
+pg_groups:
+  filter: rolname IN (SELECT b.rolname FROM pg_auth_members a LEFT JOIN pg_authid b ON b.oid = a.roleid UNION SELECT rolname FROM pg_roles WHERE NOT rolcanlogin) AND NOT rolsuper
+  create_options: NOLOGIN
+  grant_options:
+  grant_this_group:

@@ -1,3 +1,12 @@
+=== 0.1.2 / 2016-10-18
+
+* Add ability to have ldap groups and users with the same name merge into a single PG role
+* Fixed to make dn's case insensitive as LDAP is case aware but not case sensitive
+* Script will warn instead of die if role still owns objects in the database and can't be deleted from the database
+* Script will warn about duplicate role. You should only run into this the first time you run this script against an existing server and you are using the "ldap_users" and "ldap_groups".
+* Added testing for usage of "ldap_users" and "ldap_groups" group name
+* Added "grant_this_group" to the pg_users and pg_groups YAML config file to support moving a user to become group to become user and to auto create these groups if they do not exist
+
 === 0.1.1 / 2012-11-15
 
 * Add ability to lowercase the LDAP name for use as PG role name

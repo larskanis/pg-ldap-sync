@@ -1,0 +1,54 @@
+# With this sample config the distinction between PG groups and users is
+# done by the LOGIN for users and what roles have members for groups. 
+# Any non-superuser account is considered as LDAP-synchronized.
+
+# Connection parameters to LDAP server
+# see also: http://net-ldap.rubyforge.org/Net/LDAP.html#method-c-new
+ldap_connection:
+  host: localhost
+  port: 389
+  auth:
+    method: :simple
+    username: CN=username,OU=!Serviceaccounts,OU=company,DC=company,DC=de
+    password: secret
+
+# Search parameters for LDAP users which should be synchronized
+ldap_users:
+  base: OU=company,OU=company,DC=company,DC=de
+  # LDAP filter (according to RFC 2254)
+  # defines to users in LDAP to be synchronized
+  filter: (&(objectClass=person)(objectClass=organizationalPerson)(givenName=*)(sn=*))
+  # this attribute is used as PG role name
+  name_attribute: sAMAccountName
+
+# Search parameters for LDAP groups which should be synchronized
+ldap_groups:
+  base: OU=company,OU=company,DC=company,DC=de
+  filter: (|(cn=group1)(cn=group2)(cn=group3))
+  # this attribute is used as PG role name
+  name_attribute: cn
+  # this attribute must reference to all member DN's of the given group
+  member_attribute: member
+
+# Connection parameters to PostgreSQL server
+# see also: http://rubydoc.info/gems/pg/PG/Connection#initialize-instance_method
+pg_connection:
+  host:
+  dbname: postgres
+  user: db-username
+  password:
+
+pg_users:
+  # Filter for identifying LDAP generated users in the database.
+  # It's the WHERE-condition to "SELECT rolname, oid FROM pg_roles"
+  filter: rolcanlogin AND NOT rolsuper
+  # Options for CREATE RULE statements
+  create_options: LOGIN
+
+pg_groups:
+  # Filter for identifying LDAP generated groups in the database and users who have members.
+  # It's the WHERE-condition to "SELECT rolname, oid FROM pg_roles"
+  filter: rolname IN (SELECT b.rolname FROM pg_auth_members a LEFT JOIN pg_authid b ON b.oid = a.roleid UNION SELECT rolname FROM pg_roles WHERE NOT rolcanlogin) AND NOT rolsuper
+  # Options for CREATE RULE statements
+  create_options: NOLOGIN
+  grant_options:

@@ -29,6 +29,8 @@ It is meant to be started as a cron job.
 * Runs with pg.gem (C-library) or postgres-pr.gem (pure Ruby)
 * Test mode which doesn't do any changes to the DBMS
 * Both LDAP and PG connections can be secured by SSL/TLS
+* Supports LDAP users and groups with the same names
+* Ability to have ldap groups and users with the same name merge into a single Postgres role
 
 == REQUIREMENTS:
 
