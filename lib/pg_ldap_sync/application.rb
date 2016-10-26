@@ -322,7 +322,16 @@ class Application
 
   def create_pg_role(role)
     pg_conf = @config[role.type==:user ? :pg_users : :pg_groups]
-    pg_exec_modify "CREATE ROLE \"#{role.name}\" #{pg_conf[:create_options]}"
+    if pg_conf[:grant_this_group] != nil
+      res = pg_exec "SELECT pr.rolname FROM pg_roles pr WHERE pr.rolname='#{role.name}'"
+      if res[0] == nil
+        pg_exec_modify "CREATE ROLE \"#{role.name}\" #{pg_conf[:create_options]}"
+      else
+        pg_exec_modify "GRANT \"#{pg_conf[:grant_this_group]}\" TO \"#{role.name}\""
+      end
+    else
+      pg_exec_modify "CREATE ROLE \"#{role.name}\" #{pg_conf[:create_options]}"
+    end
   end
 
   def drop_pg_role(role)
@@ -502,6 +511,16 @@ class Application
     sync_roles_to_pg(mroles, :create)
     # Fix group memberships
     sync_roles_to_pg(mroles, :group)
+    
+    # Reload users and group in case they had been created but were not within the proper "grant_this_group"
+    pg_users = uniq_names search_pg_users
+    pg_groups = uniq_names search_pg_groups
+    @pg_ldap_groups = search_pg_ldap_groups
+
+    # compare reloaded LDAP to PG memberships
+    mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
+
+    # The reload keeps the grants from throwing warnings about role already being part of the group
     sync_membership_to_pg(mmemberships, :grant)
 
     @pgconn.close
