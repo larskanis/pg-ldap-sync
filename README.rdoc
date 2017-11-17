@@ -55,6 +55,9 @@ but doesn't need compilation:
   gem install hoe
   rake install_gem
 
+When running rake, you might need to update your path to find rake 
+  PATH=$PATH:/var/lib/pgsql/bin/ rake install_gem
+  
 == USAGE:
 
 Create a config file based on
