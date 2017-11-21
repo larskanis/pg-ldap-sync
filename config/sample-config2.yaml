@@ -51,6 +51,9 @@ pg_users:
   filter: oid IN (SELECT pam.member FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.roleid WHERE pr.rolname='ldap_users')
   # Options for CREATE RULE statements
   create_options: LOGIN IN ROLE ldap_users
+  # Add a suffix to the pg-user creation
+  # i.e. add FQDN suffix to the user role creation when using Kerberos/GSS
+  user_suffix: @COMPANY.COM
 
 pg_groups:
   # Filter for identifying LDAP generated groups in the database.

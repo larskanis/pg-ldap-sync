@@ -23,10 +23,10 @@ pg_connection:
 #   password:
 
 pg_users:
-  filter: rolcanlogin AND NOT rolsuper
-  create_options: LOGIN
+  filter: oid IN (SELECT pam.member FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.roleid WHERE pr.rolname='ldap_users')
+  create_options: LOGIN IN ROLE ldap_users
+  name_suffix: "@DOMAIN.COM"
 
 pg_groups:
-  filter: NOT rolcanlogin
-  create_options: NOLOGIN
-  grant_options:
+  filter: oid IN (SELECT pam.member FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.roleid WHERE pr.rolname='ldap_groups')
+  create_options: NOLOGIN IN ROLE ldap_groups

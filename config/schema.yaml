@@ -54,6 +54,9 @@ mapping:
         required:  yes
       "create_options":
         type: str
+      "name_suffix":
+        type: str
+        required:  no
 
   "pg_groups":
     type: map
