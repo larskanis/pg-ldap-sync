@@ -87,6 +87,10 @@ class Application
       end
       name.downcase! if ldap_user_conf[:lowercase_name]
 
+      pg_users_conf = @config[:pg_users]
+      name_suffix = pg_users_conf[:name_suffix]
+      name << name_suffix if name_suffix
+
       log.info "found user-dn: #{entry.dn}"
       user = LdapRole.new name, entry.dn
       users << user

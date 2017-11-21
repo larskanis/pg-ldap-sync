@@ -1,3 +1,7 @@
+=== 0.1.2 / 2017-11-15
+
+* Ability to add a FQDN suffix to the user role creation when using Kerberos/GSS
+
 === 0.1.1 / 2012-11-15
 
 * Add ability to lowercase the LDAP name for use as PG role name

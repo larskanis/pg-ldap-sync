@@ -29,6 +29,7 @@ It is meant to be started as a cron job.
 * Runs with pg.gem (C-library) or postgres-pr.gem (pure Ruby)
 * Test mode which doesn't do any changes to the DBMS
 * Both LDAP and PG connections can be secured by SSL/TLS
+* Ability to add a FQDN suffix to the user role creation when using Kerberos/GSS
 
 == REQUIREMENTS:
 
@@ -55,6 +56,9 @@ but doesn't need compilation:
   gem install hoe
   rake install_gem
 
+When running rake, you might need to update your path to find rake 
+  PATH=$PATH:/var/lib/pgsql/bin/ rake install_gem
+  
 == USAGE:
 
 Create a config file based on
