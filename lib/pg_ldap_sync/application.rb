@@ -314,7 +314,7 @@ class Application
     ldap_groups = uniq_names search_ldap_groups
 
     # gather PGs users and groups
-    @pgconn = PGconn.connect @config[:pg_connection]
+    @pgconn = PG.connect @config[:pg_connection]
     pg_users = uniq_names search_pg_users
     pg_groups = uniq_names search_pg_groups
 
