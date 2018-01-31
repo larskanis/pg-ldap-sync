@@ -12,7 +12,7 @@ begin
 rescue LoadError => e
   begin
     require 'postgres'
-    class PGconn
+    class PG
       alias initialize_before_hash_change initialize
       def initialize(*args)
         arg = args.first
@@ -149,7 +149,7 @@ class Application
     groups = []
     res = pg_exec "SELECT rolname, oid FROM pg_roles WHERE #{pg_groups_conf[:filter]}"
     res.each do |tuple|
-      res2 = pg_exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{PGconn.escape(tuple[1])}"
+      res2 = pg_exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{PG.escape(tuple[1])}"
       member_names = res2.map{|row| row[0] }
       group = PgRole.new tuple[0], member_names
       log.info{ "found pg-group: #{group.name.inspect} with members: #{member_names.inspect}"}
