@@ -224,12 +224,22 @@ class Application
   end
 
   def create_pg_role(role)
-    pg_conf = @config[role.type==:user ? :pg_users : :pg_groups]
-    pg_exec_modify "CREATE ROLE \"#{role.name}\" #{pg_conf[:create_options]}"
+    begin 
+      pg_conf = @config[role.type==:user ? :pg_users : :pg_groups]
+      pg_exec_modify "CREATE ROLE \"#{role.name}\" #{pg_conf[:create_options]}"
+    rescue Exception => e
+      log.error{e.message}
+      log.info{"can't create role: #{role.name}"}
+    end 
   end
 
   def drop_pg_role(role)
-    pg_exec_modify "DROP ROLE \"#{role.name}\""
+    begin 
+      pg_exec_modify "DROP ROLE IF EXISTS \"#{role.name}\""
+    rescue Exception => e
+      log.error{e.message}
+      log.info{"can't drop role: #{role.name}"}
+    end
   end
 
   def sync_roles_to_pg(roles, for_state)
@@ -284,12 +294,24 @@ class Application
   def grant_membership(role_name, add_members)
     pg_conf = @config[:pg_groups]
     add_members_escaped = add_members.map{|m| "\"#{m}\"" }.join(",")
-    pg_exec_modify "GRANT \"#{role_name}\" TO #{add_members_escaped} #{pg_conf[:grant_options]}"
+    
+    begin 
+      pg_exec_modify "GRANT \"#{role_name}\" TO #{add_members_escaped} #{pg_conf[:grant_options]}"
+    rescue Exception => e
+      log.error{e.message}
+      log.info{"can't grant role: #{role.name}"}
+    end
   end
 
   def revoke_membership(role_name, rm_members)
     rm_members_escaped = rm_members.map{|m| "\"#{m}\"" }.join(",")
-    pg_exec_modify "REVOKE \"#{role_name}\" FROM #{rm_members_escaped}"
+
+    begin 
+      pg_exec_modify "REVOKE \"#{role_name}\" FROM #{rm_members_escaped}"
+    rescue Exception => e
+      log.error{e.message}
+      log.info{"can't revoke role: #{role.name}"}
+    end
   end
 
   def sync_membership_to_pg(memberships, for_state)

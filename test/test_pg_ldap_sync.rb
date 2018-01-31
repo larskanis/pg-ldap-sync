@@ -41,12 +41,15 @@ class TestPgLdapSync < Test::Unit::TestCase
     @port = 54321
     ENV['PGPORT'] = @port.to_s
     ENV['PGHOST'] = 'localhost'
-    unless File.exist?('temp/pg_data/PG_VERSION')
-      FileUtils.mkdir_p 'temp/pg_data'
-      log_and_run 'initdb', '-D', 'temp/pg_data', '--no-locale'
-    end
+
+    puts FileUtils.rm_rf('temp/pg_data') if File.directory?('temp/pg_data')
+    FileUtils.mkdir_p 'temp/pg_data'
+    
+    log_and_run 'initdb', '-D', 'temp/pg_data', '--no-locale'
     log_and_run 'pg_ctl', '-w', '-o', "-k.", '-D', 'temp/pg_data', 'start'
     log_and_run 'psql', '-e', '-c', "DROP ROLE IF EXISTS fred, wilma, \"Flintstones\", \"Wilmas\", \"All Users\"", 'postgres'
+    log_and_run 'psql', '-e', '-c', "CREATE ROLE ldap_groups", 'postgres'
+    log_and_run 'psql', '-e', '-c', "CREATE ROLE ldap_users", 'postgres'
   end
 
   def stop_pg_server
