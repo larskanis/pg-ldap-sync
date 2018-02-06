@@ -27,6 +27,6 @@ pg_users:
   create_options: LOGIN
 
 pg_groups:
-  filter: NOT rolcanlogin AND rolname!='pg_signal_backend'
+  filter: NOT rolcanlogin
   create_options: NOLOGIN
   grant_options:

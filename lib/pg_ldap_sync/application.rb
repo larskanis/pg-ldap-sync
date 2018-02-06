@@ -108,6 +108,9 @@ class Application
 
   PgRole = Struct.new :name, :member_names
 
+  # List of default roles taken from https://www.postgresql.org/docs/current/static/default-roles.html
+  PG_BUILTIN_ROLES = %w[ pg_signal_backend pg_monitor pg_read_all_settings pg_read_all_stats pg_stat_scan_tables]
+
   def search_pg_users
     pg_users_conf = @config[:pg_users]
 
@@ -115,6 +118,7 @@ class Application
     res = pg_exec "SELECT rolname FROM pg_roles WHERE #{pg_users_conf[:filter]}"
     res.each do |tuple|
       user = PgRole.new tuple[0]
+      next if PG_BUILTIN_ROLES.include?(user.name)
       log.info{ "found pg-user: #{user.name.inspect}"}
       users << user
     end
@@ -130,6 +134,7 @@ class Application
       res2 = pg_exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{@pgconn.escape_string(tuple[1])}"
       member_names = res2.map{|row| row[0] }
       group = PgRole.new tuple[0], member_names
+      next if PG_BUILTIN_ROLES.include?(group.name)
       log.info{ "found pg-group: #{group.name.inspect} with members: #{member_names.inspect}"}
       groups << group
     end
