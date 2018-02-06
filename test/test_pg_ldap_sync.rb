@@ -111,7 +111,7 @@ class TestPgLdapSync < Minitest::Test
     assert_match(psqlre('Flintstones','Cannot login'), psql_du)
     assert_match(psqlre('Wilmas','Cannot login','All Users'), psql_du)
     assert_match(psqlre('fred','','All Users','Flintstones'), psql_du)
-    assert_no_match(/wilma/, psql_du)
+    refute_match(/wilma/, psql_du)
     assert_match(psqlre('Wilma Flintstone','','Flintstones','Wilmas'), psql_du)
   end
 end
