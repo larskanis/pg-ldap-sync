@@ -1,3 +1,2 @@
-module PgLdapSync
-  VERSION = '0.1.1'
-end
+require "pg_ldap_sync/application"
+require "pg_ldap_sync/version"

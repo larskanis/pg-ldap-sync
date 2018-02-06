@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'pg_ldap_sync/application'
+require 'pg_ldap_sync'
 
 PgLdapSync::Application.run(ARGV)

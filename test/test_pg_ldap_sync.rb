@@ -1,12 +1,10 @@
-#!/usr/bin/env ruby
-
-require "test/unit"
+require "minitest/autorun"
 require "pg_ldap_sync/application"
 require 'yaml'
-require 'test/ldap_server'
 require 'fileutils'
+require_relative 'ldap_server'
 
-class TestPgLdapSync < Test::Unit::TestCase
+class TestPgLdapSync < Minitest::Test
   def log_and_run( *cmd )
     puts cmd.join(' ')
     system( *cmd )
