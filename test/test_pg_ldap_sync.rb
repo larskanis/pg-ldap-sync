@@ -1,5 +1,5 @@
 require "minitest/autorun"
-require "pg_ldap_sync/application"
+require "pg_ldap_sync"
 require 'yaml'
 require 'fileutils'
 require_relative 'ldap_server'
