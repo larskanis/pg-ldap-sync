@@ -6,29 +6,7 @@ require 'optparse'
 require 'yaml'
 require 'logger'
 require 'kwalify'
-
-begin
-  require 'pg'
-rescue LoadError => e
-  begin
-    require 'postgres'
-    class PG
-      alias initialize_before_hash_change initialize
-      def initialize(*args)
-        arg = args.first
-        if args.length==1 && arg.kind_of?(Hash)
-          initialize_before_hash_change(arg[:host], arg[:port], nil, nil, arg[:dbname], arg[:user], arg[:password])
-        else
-          initialize_before_hash_change(*args)
-        end
-      end
-    end
-  rescue LoadError
-    raise e
-  end
-end
-
-require 'pg_ldap_sync'
+require 'pg'
 
 module PgLdapSync
 class Application

@@ -32,28 +32,24 @@ It is meant to be started as a cron job.
 
 == REQUIREMENTS:
 
-* Ruby-1.8.7, Ruby-1.9.2, JRuby-1.2, Rubinius-1.2 or better
-* Rubygems-1.3.5+
+* Ruby-2.0+, JRuby-1.2, Rubinius-1.2 or better
 * LDAP-v3 server
-* PostgreSQL-server v8.1+
+* PostgreSQL-server v9.0+
 
 == INSTALL:
 
-Install Ruby and rubygems:
+Install Ruby:
 * on Windows: http://rubyinstaller.org
-* on Debian/Ubuntu: <tt>apt-get install ruby rubygems</tt>
+* on Debian/Ubuntu: <tt>apt-get install ruby libpq-dev</tt>
 
-Install pg-ldap-sync and a database connector for PostgreSQL:
-  gem install pg-ldap-sync pg
-You may also use the pure ruby postgres-connector which is less mature,
-but doesn't need compilation:
-  gem install pg-ldap-sync postgres-pr
+Install pg-ldap-sync and required dependencies:
+  gem install pg-ldap-sync
 
 === Install from Git:
   git clone https://github.com/larskanis/pg-ldap-sync.git
   cd pg-ldap-sync
-  gem install hoe
-  rake install_gem
+  bundle
+  rake install
 
 == USAGE:
 
