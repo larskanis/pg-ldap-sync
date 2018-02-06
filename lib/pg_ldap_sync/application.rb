@@ -342,6 +342,7 @@ class Application
     s.log.level = Logger::ERROR
 
     OptionParser.new do |opts|
+      opts.version = VERSION
       opts.banner = "Usage: #{$0} [options]"
       opts.on("-v", "--[no-]verbose", "Increase verbose level"){ s.log.level-=1 }
       opts.on("-c", "--config FILE", "Config file [#{s.config_fname}]", &s.method(:config_fname=))
