@@ -71,10 +71,10 @@ Run in modify-mode:
 ```
 
 ## TEST:
-There is a small test suite in the `test` directory that runs against an internal ruby-ldapserver and PostgreSQL server. Ensure gem `ruby-ldapserver` is installed and `pg_ctl`, `initdb` and `psql` commands are in the `PATH`. Then:
+There is a small test suite in the `test` directory that runs against an internal LDAP server and a PostgreSQL server. Ensure `pg_ctl`, `initdb` and `psql` commands are in the `PATH` like so:
 ```sh
   cd pg-ldap-sync
-  rake test
+  PATH=$PATH:/usr/lib/postgresql/10/bin/ rake test
 ```
 
 ## ISSUES:
