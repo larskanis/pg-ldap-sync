@@ -5,7 +5,7 @@ ldap_connection:
 
 ldap_users:
   base: dc=example,dc=com
-  filter: (&(cn=*)(sAMAccountName=*))
+  filter: (sAMAccountName=*)
   name_attribute: sAMAccountName
 
 ldap_groups:
@@ -23,7 +23,7 @@ pg_connection:
 #   password:
 
 pg_users:
-  filter: rolcanlogin AND NOT rolsuper
+  filter: rolcanlogin AND NOT rolsuper AND rolname!='double_user'
   create_options: LOGIN
 
 pg_groups:

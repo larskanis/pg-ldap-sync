@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
 require 'net/ldap'
 require 'optparse'
 require 'yaml'
-require 'logger'
 require 'kwalify'
 require 'pg'
+require "pg_ldap_sync/logger"
 
 module PgLdapSync
 class Application
-  class LdapError < RuntimeError; end
   attr_accessor :config_fname
   attr_accessor :log
   attr_accessor :test
@@ -36,7 +34,7 @@ class Application
       errors.each do |err|
         log.fatal "error in #{fname}: [#{err.path}] #{err.message}"
       end
-      exit(-1)
+      raise InvalidConfig, 78 # EX_CONFIG
     end
   end
 
@@ -194,10 +192,21 @@ class Application
     return roles
   end
 
+  def try_sql(text)
+    begin
+      @pgconn.exec "SAVEPOINT try_sql;"
+      @pgconn.exec text
+    rescue PG::Error => err
+      @pgconn.exec "ROLLBACK TO try_sql;"
+
+      log.error{ "#{err} (#{err.class})" }
+    end
+  end
+
   def pg_exec_modify(sql)
     log.info{ "SQL: #{sql}" }
     unless self.test
-      res = @pgconn.exec sql
+      try_sql sql
     end
   end
 
@@ -298,36 +307,45 @@ class Application
 
     # gather PGs users and groups
     @pgconn = PG.connect @config[:pg_connection]
-    pg_users = uniq_names search_pg_users
-    pg_groups = uniq_names search_pg_groups
+    begin
+      @pgconn.transaction do
+        pg_users = uniq_names search_pg_users
+        pg_groups = uniq_names search_pg_groups
 
-    # compare LDAP to PG users and groups
-    mroles = match_roles(ldap_users, pg_users, :user)
-    mroles += match_roles(ldap_groups, pg_groups, :group)
+        # compare LDAP to PG users and groups
+        mroles = match_roles(ldap_users, pg_users, :user)
+        mroles += match_roles(ldap_groups, pg_groups, :group)
 
-    # compare LDAP to PG memberships
-    mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
+        # compare LDAP to PG memberships
+        mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
 
-    # drop/revoke roles/memberships first
-    sync_membership_to_pg(mmemberships, :revoke)
-    sync_roles_to_pg(mroles, :drop)
-    # create/grant roles/memberships
-    sync_roles_to_pg(mroles, :create)
-    sync_membership_to_pg(mmemberships, :grant)
+        # drop/revoke roles/memberships first
+        sync_membership_to_pg(mmemberships, :revoke)
+        sync_roles_to_pg(mroles, :drop)
+        # create/grant roles/memberships
+        sync_roles_to_pg(mroles, :create)
+        sync_membership_to_pg(mmemberships, :grant)
+      end
+    ensure
+      @pgconn.close
+    end
 
-    @pgconn.close
+    # Determine exitcode
+    if log.had_errors?
+      raise ErrorExit, 1
+    end
   end
 
   def self.run(argv)
     s = self.new
     s.config_fname = '/etc/pg_ldap_sync.yaml'
-    s.log = Logger.new(STDOUT)
+    s.log = Logger.new($stdout, @error_counters)
     s.log.level = Logger::ERROR
 
     OptionParser.new do |opts|
       opts.version = VERSION
       opts.banner = "Usage: #{$0} [options]"
-      opts.on("-v", "--[no-]verbose", "Increase verbose level"){ s.log.level-=1 }
+      opts.on("-v", "--[no-]verbose", "Increase verbose level"){|v| s.log.level += v ? -1 : 1 }
       opts.on("-c", "--config FILE", "Config file [#{s.config_fname}]", &s.method(:config_fname=))
       opts.on("-t", "--[no-]test", "Don't do any change in the database", &s.method(:test=))
 

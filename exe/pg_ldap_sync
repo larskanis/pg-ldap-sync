@@ -2,4 +2,8 @@
 
 require 'pg_ldap_sync'
 
-PgLdapSync::Application.run(ARGV)
+begin
+  PgLdapSync::Application.run(ARGV)
+rescue PgLdapSync::ApplicationExit => ex
+  exit ex.exitcode
+end
