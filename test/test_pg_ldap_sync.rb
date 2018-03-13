@@ -22,7 +22,7 @@ class TestPgLdapSync < Minitest::Test
       unless $?.success?
         $stderr.puts "Command failed: [%s]\n%s" % [cmd.join(' '), File.read(fname)]
       end
-      File.unlink fname
+      File.unlink fname rescue nil # File is locked on Windows
       raise "Command failed: [%s]" % [cmd.join(' ')] unless $?.success?
     end
   end
