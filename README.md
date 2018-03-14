@@ -29,7 +29,7 @@ It is meant to be started as a cron job.
 
 ## REQUIREMENTS:
 
-* Ruby-2.0+, JRuby-1.2, Rubinius-1.2 or better
+* Ruby-2.0+, JRuby-1.2+
 * LDAP-v3 server
 * PostgreSQL-server v9.0+
 
