@@ -49,8 +49,9 @@ Install pg-ldap-sync and required dependencies:
 ```sh
   git clone https://github.com/larskanis/pg-ldap-sync.git
   cd pg-ldap-sync
-  bundle
-  rake install
+  gem install bundler
+  bundle install
+  bundle exec rake install
 ```
 
 ## USAGE:
@@ -73,7 +74,8 @@ Run in modify-mode:
 There is a small test suite in the `test` directory that runs against an internal LDAP server and a PostgreSQL server. Ensure `pg_ctl`, `initdb` and `psql` commands are in the `PATH` like so:
 ```sh
   cd pg-ldap-sync
-  PATH=$PATH:/usr/lib/postgresql/10/bin/ rake test
+  bundle install
+  PATH=$PATH:/usr/lib/postgresql/10/bin/ bundle exec rake test
 ```
 
 ## ISSUES:
