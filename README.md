@@ -24,7 +24,6 @@ It is meant to be started as a cron job.
 * Can use Active Directory as LDAP-Server
 * Nested groups/roles supported
 * Set scope of considered users/groups on LDAP and PG side
-* Runs with pg.gem (C-library) or postgres-pr.gem (pure Ruby)
 * Test mode which doesn't do any changes to the DBMS
 * Both LDAP and PG connections can be secured by SSL/TLS
 
