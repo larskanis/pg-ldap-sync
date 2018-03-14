@@ -1,4 +1,4 @@
-=== 0.2.0 / 2018-03-13
+## 0.2.0 / 2018-03-13
 
 * Update gem dependencies
 * Fix compatibility to pg-1.0 gem
@@ -11,12 +11,12 @@
 * Remove support for postgres-pr, since it's no longer maintained
 
 
-=== 0.1.1 / 2012-11-15
+## 0.1.1 / 2012-11-15
 
 * Add ability to lowercase the LDAP name for use as PG role name
 
 
-=== 0.1.0 / 2011-07-13
+## 0.1.0 / 2011-07-13
 
 * Birthday!
 
