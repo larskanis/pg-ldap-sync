@@ -37,13 +37,13 @@ It is meant to be started as a cron job.
 * Ruby-1.8.7, Ruby-1.9.2, JRuby-1.2, Rubinius-1.2 or better
 * Rubygems-1.3.5+
 * LDAP-v3 server
-* PostgreSQL-server v8.1+
+* PostgreSQL-server v9.0+
 
 == INSTALL:
 
 Install Ruby and rubygems:
 * on Windows: http://rubyinstaller.org
-* on Debian/Ubuntu: <tt>apt-get install ruby rubygems</tt>
+* on Debian/Ubuntu: <tt>apt-get install ruby libpq-dev</tt>
 
 Install pg-ldap-sync and a database connector for PostgreSQL:
   gem install pg-ldap-sync pg
@@ -54,8 +54,9 @@ but doesn't need compilation:
 === Install from Git:
   git clone https://github.com/larskanis/pg-ldap-sync.git
   cd pg-ldap-sync
-  gem install hoe
-  rake install_gem
+  gem install bundler
+  bundle install
+  bundle exec rake install
 
 == USAGE:
 
@@ -89,25 +90,4 @@ commands are in the <tt>PATH</tt>. Then:
 
 == LICENSE:
 
-(The MIT License)
-
-Copyright (c) 2011 FIX
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The gem is available as open source under the terms of the {MIT License}[https://opensource.org/licenses/MIT].

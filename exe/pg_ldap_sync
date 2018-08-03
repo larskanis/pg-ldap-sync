@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'pg_ldap_sync'
+
+begin
+  PgLdapSync::Application.run(ARGV)
+rescue PgLdapSync::ApplicationExit => ex
+  exit ex.exitcode
+end

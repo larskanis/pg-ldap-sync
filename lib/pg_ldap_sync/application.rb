@@ -1,38 +1,14 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
 require 'net/ldap'
 require 'optparse'
 require 'yaml'
-require 'logger'
 require 'kwalify'
-
-begin
-  require 'pg'
-rescue LoadError => e
-  begin
-    require 'postgres'
-    class PGconn
-      alias initialize_before_hash_change initialize
-      def initialize(*args)
-        arg = args.first
-        if args.length==1 && arg.kind_of?(Hash)
-          initialize_before_hash_change(arg[:host], arg[:port], nil, nil, arg[:dbname], arg[:user], arg[:password])
-        else
-          initialize_before_hash_change(*args)
-        end
-      end
-    end
-  rescue LoadError
-    raise e
-  end
-end
-
-require 'pg_ldap_sync'
+require 'pg'
+require "pg_ldap_sync/logger"
 
 module PgLdapSync
 class Application
-  class LdapError < RuntimeError; end
   attr_accessor :config_fname
   attr_accessor :log
   attr_accessor :test
@@ -58,7 +34,7 @@ class Application
       errors.each do |err|
         log.fatal "error in #{fname}: [#{err.path}] #{err.message}"
       end
-      exit(-1)
+      raise InvalidConfig, 78 # EX_CONFIG
     end
   end
 
@@ -132,6 +108,9 @@ class Application
 
   PgRole = Struct.new :name, :member_names
 
+  # List of default roles taken from https://www.postgresql.org/docs/current/static/default-roles.html
+  PG_BUILTIN_ROLES = %w[ pg_signal_backend pg_monitor pg_read_all_settings pg_read_all_stats pg_stat_scan_tables]
+
   def search_pg_users
     pg_users_conf = @config[:pg_users]
 
@@ -139,6 +118,7 @@ class Application
     res = pg_exec "SELECT rolname FROM pg_roles WHERE #{pg_users_conf[:filter]}"
     res.each do |tuple|
       user = PgRole.new tuple[0]
+      next if PG_BUILTIN_ROLES.include?(user.name)
       log.info{ "found pg-user: #{user.name.inspect}"}
       users << user
     end
@@ -151,9 +131,10 @@ class Application
     groups = []
     res = pg_exec "SELECT rolname, oid FROM pg_roles WHERE #{pg_groups_conf[:filter]}"
     res.each do |tuple|
-      res2 = pg_exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{PGconn.escape(tuple[1])}"
+      res2 = pg_exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{@pgconn.escape_string(tuple[1])}"
       member_names = res2.map{|row| row[0] }
       group = PgRole.new tuple[0], member_names
+      next if PG_BUILTIN_ROLES.include?(group.name)
       log.info{ "found pg-group: #{group.name.inspect} with members: #{member_names.inspect}"}
       groups << group
     end
@@ -179,7 +160,7 @@ class Application
       groups = []
       res = pg_exec "SELECT rolname, oid FROM pg_roles WHERE rolname IN (#{in_group})"
       res.each do |tuple|
-        res2 = pg_exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{PGconn.escape(tuple[1])}"
+        res2 = pg_exec "SELECT pr.rolname FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.member WHERE pam.roleid=#{@pgconn.escape_string(tuple[1])}"
         member_names = res2.map{|row| row[0] }
         group = PgRole.new tuple[0], member_names
         log.info{ "found pg-group: #{group.name.inspect} with members: #{member_names.inspect}"}
@@ -302,16 +283,21 @@ class Application
     return roles
   end
 
+  def try_sql(text)
+    begin
+      @pgconn.exec "SAVEPOINT try_sql;"
+      @pgconn.exec text
+    rescue PG::Error => err
+      @pgconn.exec "ROLLBACK TO try_sql;"
+      log.error{ "#{err} (#{err.class})" }
+    end
+  end
+  
+  
   def pg_exec_modify(sql)
     log.info{ "SQL: #{sql}" }
     unless self.test
-      begin
-        res = @pgconn.exec sql
-      rescue PG::DuplicateObject => dup
-        log.warn{ dup }
-      rescue PG::DependentObjectStillExists => dep
-        log.warn{ dep }
-      end
+      try_sql sql
     end
   end
 
@@ -486,55 +472,66 @@ class Application
     ldap_groups = uniq_names search_ldap_groups
 
     # gather PGs users and groups
-    @pgconn = PGconn.connect @config[:pg_connection]
-    pg_users = uniq_names search_pg_users
-    pg_groups = uniq_names search_pg_groups
-    @pg_ldap_groups = search_pg_ldap_groups
+    @pgconn = PG.connect @config[:pg_connection]
+    begin
+      @pgconn.transaction do
+        pg_users = uniq_names search_pg_users
+        pg_groups = uniq_names search_pg_groups
+        @pg_ldap_groups = search_pg_ldap_groups
 
-    # compare LDAP to PG users and groups
-    mroles = match_roles(ldap_users, pg_users, :user)
-    mroles += match_roles(ldap_groups, pg_groups, :group)
-    mroles = match_users_groups(mroles)
+        # compare LDAP to PG users and groups
+        mroles = match_roles(ldap_users, pg_users, :user)
+        mroles += match_roles(ldap_groups, pg_groups, :group)
+        mroles = match_users_groups(mroles)
 
-    # compare LDAP to PG memberships
-    mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
+        # compare LDAP to PG memberships
+        mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
     
-    # Check to see if grant_this_group exists and if not create the group
-    check_groups()
+        # Check to see if grant_this_group exists and if not create the group
+        check_groups()
 
-    # drop/revoke roles/memberships first
-    sync_membership_to_pg(mmemberships, :revoke)
-    sync_roles_to_pg(mroles, :drop)
-    # Make Login if this used to be a non-login role and Non-Login if this used to be a login role
-    sync_roles_to_pg(mroles, :alter)
-    # create/grant roles/memberships
-    sync_roles_to_pg(mroles, :create)
-    # Fix group memberships
-    sync_roles_to_pg(mroles, :group)
+        # drop/revoke roles/memberships first
+        sync_membership_to_pg(mmemberships, :revoke)
+        sync_roles_to_pg(mroles, :drop)
+        # Make Login if this used to be a non-login role and Non-Login if this used to be a login role
+        sync_roles_to_pg(mroles, :alter)
+        # create/grant roles/memberships
+        sync_roles_to_pg(mroles, :create)
+        # Fix group memberships
+        sync_roles_to_pg(mroles, :group)
     
-    # Reload users and group in case they had been created but were not within the proper "grant_this_group"
-    pg_users = uniq_names search_pg_users
-    pg_groups = uniq_names search_pg_groups
-    @pg_ldap_groups = search_pg_ldap_groups
+        # Reload users and group in case they had been created but were not within the proper "grant_this_group"
+        pg_users = uniq_names search_pg_users
+        pg_groups = uniq_names search_pg_groups
+        @pg_ldap_groups = search_pg_ldap_groups
 
-    # compare reloaded LDAP to PG memberships
-    mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
+        # compare reloaded LDAP to PG memberships
+        mmemberships = match_memberships(ldap_users+ldap_groups, pg_users+pg_groups)
 
-    # The reload keeps the grants from throwing warnings about role already being part of the group
-    sync_membership_to_pg(mmemberships, :grant)
+        # The reload keeps the grants from throwing warnings about role already being part of the group
+        sync_membership_to_pg(mmemberships, :grant)
 
-    @pgconn.close
+      end
+    ensure
+      @pgconn.close
+    end
+    
+    # Determine exitcode
+    if log.had_errors?
+      raise ErrorExit, 1
+    end    
   end
 
   def self.run(argv)
     s = self.new
     s.config_fname = '/etc/pg_ldap_sync.yaml'
-    s.log = Logger.new(STDOUT)
+    s.log = Logger.new($stdout, @error_counters)
     s.log.level = Logger::ERROR
 
     OptionParser.new do |opts|
+      opts.version = VERSION
       opts.banner = "Usage: #{$0} [options]"
-      opts.on("-v", "--[no-]verbose", "Increase verbose level"){ s.log.level-=1 }
+      opts.on("-v", "--[no-]verbose", "Increase verbose level"){|v| s.log.level += v ? -1 : 1 }
       opts.on("-c", "--config FILE", "Config file [#{s.config_fname}]", &s.method(:config_fname=))
       opts.on("-t", "--[no-]test", "Don't do any change in the database", &s.method(:test=))
 

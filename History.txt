@@ -1,4 +1,23 @@
-=== 0.1.2 / 2016-10-18
+=== 0.2.1 / 2018-08-03 (Lloyd)
+* Add pg_ldap_sync --version
+* Fix compatibility with PostgreSQL-10
+* Don't abort on SQL errors, but print ERROR notice
+* Run sync within a SQL transaction, so that no partial sync happens
+* Todo: Add Larskanis updates to the test suite and add the automated tests.
+
+=== 0.2.0 / 2018-03-13 (Larskanis)
+
+* Update gem dependencies
+* Fix compatibility to pg-1.0 gem
+* Add pg_ldap_sync --version
+* Fix compatibility with PostgreSQL-10
+* Don't abort on SQL errors, but print ERROR notice
+* Run sync within a SQL transaction, so that no partial sync happens
+* Lots of improvements to the test suite
+* Run automated tests on Travis-CI and Appveyor
+* Remove support for postgres-pr, since it's no longer maintained
+
+=== 0.1.2 / 2016-10-18 (Lloyd)
 
 * Add ability to have ldap groups and users with the same name merge into a single PG role
 * Fixed to make dn's case insensitive as LDAP is case aware but not case sensitive

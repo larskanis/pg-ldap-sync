@@ -1,10 +1,13 @@
 #!/usr/bin/env ruby
 
-require "test/unit"
-require "pg_ldap_sync/application"
+require 'test/unit'
+#require "pg_ldap_sync/application"
+require "pg_ldap_sync"
 require 'yaml'
-require 'test/ldap_server'
+#require 'test/ldap_server'
+require 'ldap_server'
 require 'fileutils'
+require_relative 'ldap_server'
 
 class TestPgLdapSync < Test::Unit::TestCase
   def log_and_run( *cmd )
