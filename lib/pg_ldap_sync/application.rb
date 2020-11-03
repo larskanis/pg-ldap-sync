@@ -5,7 +5,8 @@ require 'optparse'
 require 'yaml'
 require 'kwalify'
 require 'pg'
-require "pg_ldap_sync/logger"
+#require "pg_ldap_sync/logger"
+require_relative 'logger'
 
 module PgLdapSync
 class Application
