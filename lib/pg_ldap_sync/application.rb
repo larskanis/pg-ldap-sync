@@ -15,11 +15,11 @@ class Application
 
   def string_to_symbol(hash)
     if hash.kind_of?(Hash)
-      return hash.inject({}){|h, v|
+      return hash.inject({}) do |h, v|
         raise "expected String instead of #{h.inspect}" unless v[0].kind_of?(String)
         h[v[0].intern] = string_to_symbol(v[1])
         h
-      }
+      end
     else
       return hash
     end
@@ -199,12 +199,12 @@ class Application
       r.type = type
     end
 
-    log.info{
+    log.info do
       roles.each do |role|
         log.debug{ "#{role.state} #{role.type}: #{role.name}" }
       end
       "#{type} stat: create: #{roles.count{|r| r.state==:create }} drop: #{roles.count{|r| r.state==:drop }} keep: #{roles.count{|r| r.state==:keep }}"
-    }
+    end
     return roles
   end
 
@@ -280,12 +280,12 @@ class Application
     memberships += (ldap_by_m2m - pg_by_m2m).map{|r,mo| MatchedMembership.new r, mo, :grant }
     memberships += (pg_by_m2m - ldap_by_m2m).map{|r,mo| MatchedMembership.new r, mo, :revoke }
 
-    log.info{
+    log.info do
       memberships.each do |membership|
         log.debug{ "#{membership.state} #{membership.role_name} to #{membership.has_member}" }
       end
       "membership stat: grant: #{memberships.count{|u| u.state==:grant }} revoke: #{memberships.count{|u| u.state==:revoke }} keep: #{memberships.count{|u| u.state==:keep }}"
-    }
+    end
     return memberships
   end
 
