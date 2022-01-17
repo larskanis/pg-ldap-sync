@@ -250,31 +250,31 @@ class Application
   MatchedMembership = Struct.new :role_name, :has_member, :state
 
   def match_memberships(ldap_roles, pg_roles)
-    ldap_by_dn = ldap_roles.inject({}){|h,r| h[r.dn] = r; h }
-    ldap_by_m2m = ldap_roles.inject([]){|a,r|
+    hash_of_arrays = Hash.new { |h, k| h[k] = [] }
+    ldap_by_dn = ldap_roles.inject(hash_of_arrays){|h,r| h[r.dn] << r; h }
+    ldap_by_m2m = ldap_roles.inject([]) do |a,r|
       next a unless r.member_dns
-      a + r.member_dns.map{|dn|
-        if has_member=ldap_by_dn[dn]
+      a + r.member_dns.flat_map do |dn|
+        has_members = ldap_by_dn[dn]
+        log.warn{"ldap member with dn #{dn} is unknown"} if has_members.empty?
+        has_members.map do |has_member|
           [r.name, has_member.name]
-        else
-          log.warn{"ldap member with dn #{dn} is unknown"}
-          nil
         end
-      }.compact
-    }
+      end
+    end
 
-    pg_by_name = pg_roles.inject({}){|h,r| h[r.name] = r; h }
-    pg_by_m2m = pg_roles.inject([]){|a,r|
+    hash_of_arrays = Hash.new { |h, k| h[k] = [] }
+    pg_by_name = pg_roles.inject(hash_of_arrays){|h,r| h[r.name] << r; h }
+    pg_by_m2m = pg_roles.inject([]) do |a,r|
       next a unless r.member_names
-      a + r.member_names.map{|name|
-        if has_member=pg_by_name[name]
+      a + r.member_names.flat_map do |name|
+        has_members = pg_by_name[name]
+        log.warn{"pg member with name #{name} is unknown"} if has_members.empty?
+        has_members.map do |has_member|
           [r.name, has_member.name]
-        else
-          log.warn{"pg member with name #{name} is unknown"}
-          nil
         end
-      }.compact
-    }
+      end
+    end
 
     memberships  = (ldap_by_m2m & pg_by_m2m).map{|r,mo| MatchedMembership.new r, mo, :keep }
     memberships += (ldap_by_m2m - pg_by_m2m).map{|r,mo| MatchedMembership.new r, mo, :grant }

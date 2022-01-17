@@ -162,6 +162,7 @@ class TestPgLdapSync < Minitest::Test
       # add 'Fred' to 'Wilmas'
       @directory[0]['cn=Wilmas,dc=example,dc=com']['member'] << 'cn=Fred Flintstone,dc=example,dc=com'
     end
+    refute_role('fred')
     assert_role('Fred', '', ['All Users', 'Flintstones', 'Wilmas'])
   end
 
@@ -171,6 +172,7 @@ class TestPgLdapSync < Minitest::Test
       @directory[0]['cn=Wilmas,dc=example,dc=com']['member'] << 'cn=Fred Flintstone,dc=example,dc=com'
     end
     assert_role('fred', '', ['All Users', 'all users', 'Flintstones', 'flintstones', 'Wilmas', 'wilmas'])
+    assert_role('Fred', '', ['All Users', 'all users', 'Flintstones', 'flintstones', 'Wilmas', 'wilmas'])
   end
 
   def test_revoke_membership
