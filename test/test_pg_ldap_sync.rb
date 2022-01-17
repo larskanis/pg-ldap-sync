@@ -83,7 +83,7 @@ class TestPgLdapSync < Minitest::Test
   end
 
   def setup
-    @pgconn.exec "DROP ROLE IF EXISTS fred, wilma, \"Flintstones\", \"Wilmas\", \"All Users\", double_user"
+    @pgconn.exec "DROP ROLE IF EXISTS \"Fred\", fred, \"Wilma\", wilma, \"Flintstones\", \"flintstones\", \"Wilmas\", \"wilmas\", \"All Users\", double_user"
   end
 
   def assert_role(role_name, attrs, member_of=[])
@@ -130,12 +130,12 @@ class TestPgLdapSync < Minitest::Test
     sync_with_config(config)
   end
 
-  def sync_change
-    sync_to_fixture
+  def sync_change(fixture: "ldapdb", config: "config-ldapdb")
+    sync_to_fixture(fixture: fixture, config: config)
 
     yield(@directory)
 
-    sync_with_config
+    sync_with_config(config)
     exec_psql_du if $DEBUG
   end
 
@@ -153,8 +153,8 @@ class TestPgLdapSync < Minitest::Test
     assert_role('All Users', 'Cannot login')
     assert_role('Flintstones', 'Cannot login')
     assert_role('Wilmas', 'Cannot login', ['All Users'])
-    assert_role('fred', '', ['All Users', 'Flintstones'])
-    assert_role('wilma', '', ['Flintstones', 'Wilmas'])
+    assert_role('Fred', '', ['All Users', 'Flintstones'])
+    assert_role('Wilma', '', ['Flintstones', 'Wilmas'])
   end
 
   def test_add_membership
@@ -162,7 +162,15 @@ class TestPgLdapSync < Minitest::Test
       # add 'Fred' to 'Wilmas'
       @directory[0]['cn=Wilmas,dc=example,dc=com']['member'] << 'cn=Fred Flintstone,dc=example,dc=com'
     end
-    assert_role('fred', '', ['All Users', 'Flintstones', 'Wilmas'])
+    assert_role('Fred', '', ['All Users', 'Flintstones', 'Wilmas'])
+  end
+
+  def test_add_membership_bothcase
+    sync_change(config: "config-ldapdb-bothcase") do |dir|
+      # add 'Fred' to 'Wilmas'
+      @directory[0]['cn=Wilmas,dc=example,dc=com']['member'] << 'cn=Fred Flintstone,dc=example,dc=com'
+    end
+    assert_role('fred', '', ['All Users', 'all users', 'Flintstones', 'flintstones', 'Wilmas', 'wilmas'])
   end
 
   def test_revoke_membership
@@ -170,7 +178,7 @@ class TestPgLdapSync < Minitest::Test
       # revoke membership of 'wilma' to 'Flintstones'
       dir[0]['cn=Flintstones,dc=example,dc=com']['member'].pop
     end
-    assert_role('wilma', '', ['Wilmas'])
+    assert_role('Wilma', '', ['Wilmas'])
   end
 
   def test_rename_role
@@ -179,6 +187,7 @@ class TestPgLdapSync < Minitest::Test
       dir[0]['cn=Wilma Flintstone,dc=example,dc=com']['sAMAccountName'] = ['Wilma Flintstone']
     end
     refute_role('wilma')
+    refute_role('Wilma')
     assert_role('Wilma Flintstone', '', ['Flintstones', 'Wilmas'])
   end
 

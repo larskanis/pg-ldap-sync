@@ -11,14 +11,14 @@ cn=Fred Flintstone,dc=example,dc=com:
   sn:
   - Flintstone
   sAMAccountName:
-  - fred
+  - Fred
 cn=Wilma Flintstone,dc=example,dc=com:
   cn:
   - Wilma Flintstone
   mail:
   - wilma@bedrock.org
   sAMAccountName:
-  - wilma
+  - Wilma
 cn=Flintstones,dc=example,dc=com:
   cn:
   - Flintstones

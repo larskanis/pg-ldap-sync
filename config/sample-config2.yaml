@@ -25,6 +25,8 @@ ldap_users:
   name_attribute: sAMAccountName
   # lowercase name for use as PG role name
   lowercase_name: true
+  # Add lowercase name *and* original name for use as PG role names (useful for migrating between case types)
+  bothcase_name: false
 
 # Search parameters for LDAP groups which should be synchronized
 ldap_groups:

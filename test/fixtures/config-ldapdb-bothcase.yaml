@@ -1,0 +1,34 @@
+---
+ldap_connection:
+  host: localhost
+  port: 1389
+
+ldap_users:
+  base: dc=example,dc=com
+  filter: (sAMAccountName=*)
+  name_attribute: sAMAccountName
+  bothcase_name: true
+
+ldap_groups:
+  base: dc=example,dc=com
+  filter: (member=*)
+  name_attribute: cn
+  bothcase_name: true
+  member_attribute: member
+
+pg_connection:
+  dbname: postgres
+  host: localhost
+  port: 54321
+# needed for postgres-pr:
+#   user: insert_your_username_here
+#   password:
+
+pg_users:
+  filter: rolcanlogin AND NOT rolsuper AND rolname!='double_user'
+  create_options: LOGIN
+
+pg_groups:
+  filter: NOT rolcanlogin
+  create_options: NOLOGIN
+  grant_options:

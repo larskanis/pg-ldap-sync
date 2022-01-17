@@ -20,6 +20,9 @@ mapping:
       "lowercase_name":
         type: bool
         required:  no
+      "bothcase_name":
+        type: bool
+        required:  no
 
   "ldap_groups":
     type: map
@@ -35,6 +38,9 @@ mapping:
         type: str
         required:  yes
       "lowercase_name":
+        type: bool
+        required:  no
+      "bothcase_name":
         type: bool
         required:  no
       "member_attribute":
