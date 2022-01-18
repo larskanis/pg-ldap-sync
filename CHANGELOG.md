@@ -1,3 +1,12 @@
+## 0.3.0 / 2022-01-18
+
+* Add config option :bothcase_name .
+  This adds both spellings "Fred_Flintstone" and "fred_flintstone" as PostgreSQL users/groups.
+* Update gem dependencies
+* Fix compatibility with PostgreSQL-14
+* Require ruby-2.4+
+
+
 ## 0.2.0 / 2018-03-13
 
 * Update gem dependencies
