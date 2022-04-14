@@ -1,6 +1,6 @@
 # With this sample config the distinction between LDAP-synchronized
 # groups/users from is done by the membership to ldap_user and
-# ldap_group. These two roles has to be defined manally before
+# ldap_group. These two roles have to be defined manally before
 # pg_ldap_sync can run.
 
 # Connection parameters to LDAP server
