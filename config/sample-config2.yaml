@@ -38,6 +38,8 @@ ldap_groups:
   lowercase_name: false
   # this attribute must reference to all member DN's of the given group
   member_attribute: member
+  # must be true if group with over 1500 members for Active Directory server
+  need_member_range_retrieval: false
 
 # Connection parameters to PostgreSQL server
 # see also: http://rubydoc.info/gems/pg/PG/Connection#initialize-instance_method

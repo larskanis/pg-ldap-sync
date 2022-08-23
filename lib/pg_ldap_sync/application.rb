@@ -85,6 +85,40 @@ class Application
     return users
   end
 
+  def load_group_members_by_range(group_dn)
+    range_start = 0
+    all_group_members = []
+    while true do
+      member_size = 0
+      member_attribute_with_range = "#{@config[:ldap_groups][:member_attribute]};range=#{range_start}-*"
+      returned_member_attribute_with_range = ""
+      log.debug " current attribute for range retrieval ----> #{member_attribute_with_range} "
+
+      res_entry = @ldap.search(
+        base:        group_dn,
+        filter:      Net::LDAP::Filter.eq('distinguishedName', group_dn), 
+        attributes:  member_attribute_with_range).first
+
+      res_entry.each do |attribute, values|
+        next if "#{attribute}" == "dn"
+        returned_member_attribute_with_range = "#{attribute}"
+        log.debug "  returned attribute --------> #{returned_member_attribute_with_range}"
+        member_size = values.count
+        values.each do |value|
+          log.debug "                              -----> #{value}"
+          all_group_members << value
+        end
+        break
+      end
+ 
+      if returned_member_attribute_with_range == member_attribute_with_range 
+        break
+      end
+      range_start = range_start + member_size
+    end
+    return all_group_members
+  end
+
   def search_ldap_groups
     ldap_group_conf = @config[:ldap_groups]
 
@@ -107,7 +141,11 @@ class Application
       end
 
       names.each do |n|
-        groups << LdapRole.new(n, entry.dn, entry[ldap_group_conf[:member_attribute]])
+        group_members = entry[ldap_group_conf[:member_attribute]]
+        if group_members.count == 0 and ldap_group_conf[:need_member_range_retrieval]
+          group_members = load_group_members_by_range(entry.dn)
+        end
+        groups << LdapRole.new(n, entry.dn, group_members)
       end
       entry.each do |attribute, values|
         log.debug "   #{attribute}:"
