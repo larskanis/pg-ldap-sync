@@ -37,6 +37,9 @@ ldap_groups:
   # lowercase name for use as PG role name
   lowercase_name: false
   # this attribute must reference to all member DN's of the given group
+  # If LDAP server is Active Directory, it's better to append ";range" to member_attribue; 
+  # otherwise, it can't synchronize groups with over 1500 users for AD server.
+  # Example for AD server: "member;range"  
   member_attribute: member
 
 # Connection parameters to PostgreSQL server
