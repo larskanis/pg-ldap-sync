@@ -37,10 +37,9 @@ ldap_groups:
   # lowercase name for use as PG role name
   lowercase_name: false
   # this attribute must reference to all member DN's of the given group
-  # If LDAP server is Active Directory, it's better to append ";range" to member_attribue; 
-  # otherwise, it can't synchronize groups with over 1500 users for AD server.
-  # Example for AD server: "member;range"  
   member_attribute: member
+  # must be true if group with over 1500 members for Active Directory server
+  need_member_range_retrieval: false
 
 # Connection parameters to PostgreSQL server
 # see also: http://rubydoc.info/gems/pg/PG/Connection#initialize-instance_method

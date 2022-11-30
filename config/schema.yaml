@@ -46,6 +46,9 @@ mapping:
       "member_attribute":
         type: str
         required:  yes
+      "need_member_range_retrieval":
+        type: bool
+        required:  no
 
   "pg_connection":
     type:      any

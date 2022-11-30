@@ -90,7 +90,7 @@ class Application
     all_group_members = []
     while true do
       member_size = 0
-      member_attribute_with_range = "#{@config[:ldap_groups][:member_attribute]}=#{range_start}-*"
+      member_attribute_with_range = "#{@config[:ldap_groups][:member_attribute]};range=#{range_start}-*"
       returned_member_attribute_with_range = ""
       log.debug " current attribute for range retrieval ----> #{member_attribute_with_range} "
 
@@ -141,9 +141,8 @@ class Application
       end
 
       names.each do |n|
-        member_attribute_sub_list = ldap_group_conf[:member_attribute].partition(";")
-        group_members = entry[member_attribute_sub_list[0]]
-        if group_members.count == 0 and member_attribute_sub_list[2] == "range"
+        group_members = entry[ldap_group_conf[:member_attribute]]
+        if group_members.count == 0 and ldap_group_conf[:need_member_range_retrieval]
           group_members = load_group_members_by_range(entry.dn)
         end
         groups << LdapRole.new(n, entry.dn, group_members)
