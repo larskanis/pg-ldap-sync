@@ -2,6 +2,9 @@
 dc=example,dc=com:
   cn:
   - Top object
+cn=Unknown Flintstone,dc=example,dc=com:
+  cn:
+  - Unknown Flintstone
 cn=Fred Flintstone,dc=example,dc=com:
   cn:
   - Fred Flintstone
@@ -36,3 +39,4 @@ cn=All Users,dc=example,dc=com:
   member:
   - cn=Wilmas,dc=example,dc=com
   - cn=Fred Flintstone,dc=example,dc=com
+  - cn=Unknown Flintstone,dc=example,dc=com

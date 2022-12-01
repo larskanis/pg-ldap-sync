@@ -17,11 +17,10 @@ class HashOperation < LDAP::Server::Operation
 
   def search(basedn, scope, deref, filter)
     basedn.downcase!
-
     case scope
     when LDAP::Server::BaseObject
       # client asked for single object by DN
-      obj = @hash[basedn]
+      obj = @hash.transform_keys(&:downcase)[basedn]
       raise LDAP::ResultError::NoSuchObject unless obj
       send_SearchResultEntry(basedn, obj) if LDAP::Server::Filter.run(filter, obj)
 

@@ -85,17 +85,52 @@ class Application
     return users
   end
 
+  def retrieve_array_attribute(entry, attribute_name)
+    array = entry[attribute_name]
+    if array.empty?
+      # Possibly an attribute, which must be retrieved in several ranges
+
+      ranged_attr = entry.attribute_names.find { |n| n =~ /\A#{Regexp.escape(attribute_name)};range=/ }
+      if ranged_attr
+        entry_dn = entry.dn
+
+        loop do
+          array += entry[ranged_attr]
+          log.debug "retrieved attribute range #{ranged_attr.inspect} of dn #{entry_dn}"
+
+          if ranged_attr =~ /;range=\d\-\*\z/
+            break
+          end
+
+          attribute_with_range = ranged_attr.to_s.gsub(/;range=.*/, ";range=#{array.size}-*")
+          entry = @ldap.search(
+            base: entry_dn,
+            scope: Net::LDAP::SearchScope_BaseObject,
+            attributes: attribute_with_range).first
+
+          ranged_attr = entry.attribute_names.find { |n| n =~ /\A#{Regexp.escape(attribute_name)};range=/ }
+        end
+      end
+    else
+      # Values already received -> No ranged attribute
+    end
+    return array
+  end
+
   def search_ldap_groups
     ldap_group_conf = @config[:ldap_groups]
+    name_attribute = ldap_group_conf[:name_attribute]
+    member_attribute = ldap_group_conf[:member_attribute]
 
     groups = []
     res = @ldap.search(:base => ldap_group_conf[:base], :filter => ldap_group_conf[:filter]) do |entry|
-      name = entry[ldap_group_conf[:name_attribute]].first
+      name = entry[name_attribute].first
 
       unless name
-        log.warn "user attribute #{ldap_group_conf[:name_attribute].inspect} not defined for #{entry.dn}"
+        log.warn "user attribute #{name_attribute.inspect} not defined for #{entry.dn}"
         next
       end
+
       log.info "found group-dn: #{entry.dn}"
 
       names = if ldap_group_conf[:bothcase_name]
@@ -107,7 +142,8 @@ class Application
       end
 
       names.each do |n|
-        groups << LdapRole.new(n, entry.dn, entry[ldap_group_conf[:member_attribute]])
+        group_members = retrieve_array_attribute(entry, member_attribute)
+        groups << LdapRole.new(n, entry.dn, group_members)
       end
       entry.each do |attribute, values|
         log.debug "   #{attribute}:"

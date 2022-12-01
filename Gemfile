@@ -2,3 +2,8 @@ source "https://rubygems.org"
 
 # Specify your gem's dependencies in pg_ldap_sync.gemspec
 gemspec
+
+group :development do
+  gem "debug"
+  gem "ruby-ldapserver", git: "https://github.com/larskanis/ruby-ldapserver/"
+end

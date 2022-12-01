@@ -41,7 +41,8 @@ class TestPgLdapSync < Minitest::Test
     # :ssl_cert_file    => "cert.pem",
     # :ssl_on_connect   => true,
       :operation_class  => HashOperation,
-      :operation_args   => @directory
+      :operation_args   => @directory,
+      :attribute_range_limit => 2
     )
     @ldap_server.run_tcpserver
   end
@@ -122,7 +123,7 @@ class TestPgLdapSync < Minitest::Test
   end
 
   def sync_with_config(config="config-ldapdb")
-    PgLdapSync::Application.run(["-c", "test/fixtures/#{config}.yaml"] + ($DEBUG ? ["-vv"] : ["--no-verbose"]))
+    PgLdapSync::Application.run(["-c", "test/fixtures/#{config}.yaml"] + ($DEBUG ? ["-vvv"] : ["--no-verbose"]))
   end
 
   def sync_to_fixture(fixture: "ldapdb", config: "config-ldapdb")
