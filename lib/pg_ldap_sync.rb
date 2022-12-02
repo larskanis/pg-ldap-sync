@@ -1,4 +1,5 @@
 require "pg_ldap_sync/application"
+require "pg_ldap_sync/compat"
 require "pg_ldap_sync/version"
 
 module PgLdapSync
