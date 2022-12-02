@@ -1,3 +1,12 @@
+## 0.4.0 / 2022-12-02
+
+* Support groups with over 1500 users in Active Directory server. #32
+* Retrieve only necessary attributes from LDAP server.
+* Add error text to exception, so that it's visible even if nothing is logged.
+* Fix compatibility with PostgreSQL-15
+* Require ruby-2.3+
+
+
 ## 0.3.0 / 2022-01-18
 
 * Add config option :bothcase_name .
