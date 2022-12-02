@@ -2,23 +2,27 @@ require 'logger'
 
 module PgLdapSync
 class Logger < ::Logger
-  def initialize(io, counters)
+  def initialize(io)
     super(io)
     @counters = {}
   end
 
-  def add(severity, *args)
-    @counters[severity] ||= 0
-    @counters[severity] += 1
+  def add(severity, *args, &block)
+    return unless [Logger::FATAL, Logger::ERROR].include?(severity)
+    @counters[severity] ||= block ? block.call : args.first
     super
   end
 
   def had_logged?(severity)
-    @counters[severity] && @counters[severity] > 0
+    !!@counters[severity]
   end
 
   def had_errors?
     had_logged?(Logger::FATAL) || had_logged?(Logger::ERROR)
+  end
+
+  def first_error
+    @counters[Logger::FATAL] || @counters[Logger::ERROR]
   end
 end
 end

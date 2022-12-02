@@ -9,7 +9,8 @@ module PgLdapSync
   class ApplicationExit < RuntimeError
     attr_reader :exitcode
 
-    def initialize(exitcode)
+    def initialize(exitcode, error=nil)
+      super(error)
       @exitcode = exitcode
     end
   end

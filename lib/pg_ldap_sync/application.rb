@@ -384,14 +384,14 @@ class Application
 
     # Determine exitcode
     if log.had_errors?
-      raise ErrorExit, 1
+      raise ErrorExit.new(1, log.first_error)
     end
   end
 
   def self.run(argv)
     s = self.new
     s.config_fname = '/etc/pg_ldap_sync.yaml'
-    s.log = Logger.new($stdout, @error_counters)
+    s.log = Logger.new($stdout)
     s.log.level = Logger::ERROR
 
     OptionParser.new do |opts|
