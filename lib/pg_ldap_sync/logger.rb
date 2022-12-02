@@ -8,9 +8,9 @@ class Logger < ::Logger
   end
 
   def add(severity, *args, &block)
+    super
     return unless [Logger::FATAL, Logger::ERROR].include?(severity)
     @counters[severity] ||= block ? block.call : args.first
-    super
   end
 
   def had_logged?(severity)
