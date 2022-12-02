@@ -52,13 +52,18 @@ class Application
 
   def search_ldap_users
     ldap_user_conf = @config[:ldap_users]
+    name_attribute = ldap_user_conf[:name_attribute]
 
     users = []
-    res = @ldap.search(:base => ldap_user_conf[:base], :filter => ldap_user_conf[:filter]) do |entry|
-      name = entry[ldap_user_conf[:name_attribute]].first
+    res = @ldap.search(
+          base: ldap_user_conf[:base],
+          filter: ldap_user_conf[:filter],
+          attributes: [name_attribute, :dn]
+    ) do |entry|
+      name = entry[name_attribute].first
 
       unless name
-        log.warn "user attribute #{ldap_user_conf[:name_attribute].inspect} not defined for #{entry.dn}"
+        log.warn "user attribute #{name_attribute.inspect} not defined for #{entry.dn}"
         next
       end
       log.info "found user-dn: #{entry.dn}"
@@ -123,7 +128,11 @@ class Application
     member_attribute = ldap_group_conf[:member_attribute]
 
     groups = []
-    res = @ldap.search(:base => ldap_group_conf[:base], :filter => ldap_group_conf[:filter]) do |entry|
+    res = @ldap.search(
+          base: ldap_group_conf[:base],
+          filter: ldap_group_conf[:filter],
+          attributes: [name_attribute, member_attribute, :dn]
+    ) do |entry|
       name = entry[name_attribute].first
 
       unless name
