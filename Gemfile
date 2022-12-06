@@ -5,5 +5,4 @@ gemspec
 
 group :development do
   gem "debug"
-  gem "ruby-ldapserver", git: "https://github.com/larskanis/ruby-ldapserver/"
 end
