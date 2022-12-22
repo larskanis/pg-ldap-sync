@@ -51,4 +51,5 @@ pg_groups:
   filter: NOT rolcanlogin AND NOT rolsuper
   # Options for CREATE RULE statements
   create_options: NOLOGIN
+  # Options for GRANT <role> TO <group> statements
   grant_options:

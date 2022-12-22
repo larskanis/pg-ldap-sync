@@ -63,4 +63,5 @@ pg_groups:
   filter: oid IN (SELECT pam.member FROM pg_auth_members pam JOIN pg_roles pr ON pr.oid=pam.roleid WHERE pr.rolname='ldap_groups')
   # Options for CREATE RULE statements
   create_options: NOLOGIN IN ROLE ldap_groups
+  # Options for GRANT <role> TO <group> statements
   grant_options:
