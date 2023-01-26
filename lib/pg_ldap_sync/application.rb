@@ -190,7 +190,7 @@ class Application
     members = []
     res = @ldap.search(
       base: ldap_user_conf[:base],
-      filter: "(&(objectCategory=person)(objectClass=user)(memberOf:1.2.840.113556.1.4.1941:=#{group_dn}))",
+      filter: "(&(!(objectClass=computer))(objectClass=user)(memberOf:1.2.840.113556.1.4.1941:=#{group_dn}))",
       attributes: [:dn]
     ) do |entry|
       log.debug "      --->#{entry.dn}"
