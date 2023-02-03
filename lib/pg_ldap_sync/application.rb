@@ -361,8 +361,26 @@ class Application
   def start!
     read_config_file(@config_fname)
 
+    ldap_conf = @config[:ldap_connection]
+    auth_meth = ldap_conf.dig(:auth, :method).to_s
+    if auth_meth == "gssapi"
+      begin
+        require 'net/ldap/auth_adapter/gssapi'
+      rescue LoadError => err
+        raise "#{err}\nTo use GSSAPI authentication please run:\n  gem install net-ldap-auth_adapter-gssapi"
+      end
+    elsif auth_meth == "gss_spnego"
+      begin
+        require 'net-ldap-gss-spnego'
+        # This doesn't work since this file is defined in net-ldap as a placeholder:
+        #   require 'net/ldap/auth_adapter/gss_spnego'
+      rescue LoadError => err
+        raise "#{err}\nTo use GSSAPI authentication please run:\n  gem install net-ldap-gss-spnego"
+      end
+    end
+
     # gather LDAP users and groups
-    @ldap = Net::LDAP.new @config[:ldap_connection]
+    @ldap = Net::LDAP.new ldap_conf
     ldap_users = uniq_names search_ldap_users
     ldap_groups = uniq_names search_ldap_groups
 
