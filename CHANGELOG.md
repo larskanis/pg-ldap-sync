@@ -1,3 +1,8 @@
+## 0.5.0 / 2023-02-03
+
+* Add Kerberos and NTLM authentication support
+
+
 ## 0.4.0 / 2022-12-02
 
 * Support groups with over 1500 users in Active Directory server. #32
