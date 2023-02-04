@@ -15,14 +15,15 @@ ldap_connection:
   # or GSSAPI / Kerberos authentication:
   auth:
     method: :gssapi
-    hostname: ldapserver
+    hostname: ldapserver.company.de
+    servicename: ldap # optional, defaults to "ldap"
 
   # or GSS-SPNEGO / NTLM authentication
   auth:
     method: :gss_spnego
-    domain: 'company.de'
     username: 'myuser'
     password: 'secret'
+    domain: 'company.de' # optional
 
 # Search parameters for LDAP users which should be synchronized
 ldap_users:
