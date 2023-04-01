@@ -1,7 +1,9 @@
 # With this sample config the distinction between LDAP-synchronized
-# groups/users from is done by the membership to ldap_user and
-# ldap_group. These two roles have to be defined manally before
-# pg_ldap_sync can run:
+# groups/users from manually created PostgreSQL users is done by the
+# membership in ldap_user and ldap_group.
+# These two roles have to be defined manally before pg_ldap_sync can
+# run and all synchronized users/groups will become member of them
+# later on:
 #     CREATE GROUP ldap_groups;
 #     CREATE USER ldap_users;
 #

@@ -20,9 +20,10 @@ It is meant to be started as a cron job.
 
 ## FEATURES:
 
+* User+group creation, deletion and changes in memberships are synchronized from LDAP to PostgreSQL
+* Nested groups/roles supported
 * Configurable per YAML config file
 * Can use Active Directory as LDAP-Server
-* Nested groups/roles supported
 * Set scope of considered users/groups on LDAP and PG side
 * Test mode which doesn't do any changes to the DBMS
 * Both LDAP and PG connections can be secured by SSL/TLS
@@ -30,7 +31,7 @@ It is meant to be started as a cron job.
 
 ## REQUIREMENTS:
 
-* Ruby-2.0+, JRuby-1.2+
+* Ruby-2.0+
 * LDAP-v3 server
 * PostgreSQL-server v9.0+
 
@@ -70,6 +71,11 @@ Run in modify-mode:
 ```sh
   pg_ldap_sync -c my_config.yaml -vv
 ```
+
+It is recommended to avoid granting permissions to synchronized users on the PostgreSQL server, but to grant permissions to groups instead.
+This is because `DROP USER` statements invoked when a user leaves otherwise fail due to depending objects.
+`DROP GROUP` equally fails if there are depending objects, but groups are typically more stable and removed rarely.
+
 
 ## TEST:
 There is a small test suite in the `test` directory that runs against an internal LDAP server and a PostgreSQL server. Ensure `pg_ctl`, `initdb` and `psql` commands are in the `PATH` like so:
