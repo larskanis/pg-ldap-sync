@@ -103,7 +103,7 @@ class Application
           array += entry[ranged_attr]
           log.debug "retrieved attribute range #{ranged_attr.inspect} of dn #{entry_dn}"
 
-          if ranged_attr =~ /;range=\d\-\*\z/
+          if ranged_attr =~ /;range=\d+\-\*\z/
             break
           end
 
