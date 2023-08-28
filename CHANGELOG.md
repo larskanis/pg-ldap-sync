@@ -1,6 +1,6 @@
 ## 0.5.0 / 2023-08-24
 
-* Add Kerberos and NTLM authentication support
+* Add Kerberos and NTLM authentication support to LDAP connection
 * Fix retrieval of groups with over 1500 users in Active Directory server. #45
 
 
