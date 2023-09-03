@@ -42,6 +42,8 @@ ldap_groups:
   name_attribute: cn
   # this attribute must reference to all member DN's of the given group
   member_attribute: member
+  # Allows to flatten nested groups when retrieving users which are member of a given group
+  flatten_nested_groups: false
 
 # Connection parameters to PostgreSQL server
 # see also: http://rubydoc.info/gems/pg/PG/Connection#initialize-instance_method

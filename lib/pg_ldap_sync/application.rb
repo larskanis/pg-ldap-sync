@@ -86,6 +86,7 @@ class Application
         end
       end
     end
+
     raise LdapError, "LDAP: #{@ldap.get_operation_result.message}" unless res
     return users
   end
@@ -126,12 +127,16 @@ class Application
     ldap_group_conf = @config[:ldap_groups]
     name_attribute = ldap_group_conf[:name_attribute]
     member_attribute = ldap_group_conf[:member_attribute]
+    flatten_nested_groups = ldap_group_conf[:flatten_nested_groups]
+
+    search_attributes = [name_attribute, member_attribute, :dn]
 
     groups = []
+
     res = @ldap.search(
           base: ldap_group_conf[:base],
           filter: ldap_group_conf[:filter],
-          attributes: [name_attribute, member_attribute, :dn]
+          attributes: search_attributes
     ) do |entry|
       name = entry[name_attribute].first
 
@@ -142,6 +147,13 @@ class Application
 
       log.info "found group-dn: #{entry.dn}"
 
+      entry.each do |attribute, values|
+        log.debug "   #{attribute}:"
+        values.each do |value|
+          log.debug "      --->#{value.inspect}"
+        end
+      end
+
       names = if ldap_group_conf[:bothcase_name]
         [name, name.downcase].uniq
       elsif ldap_group_conf[:lowercase_name]
@@ -150,19 +162,42 @@ class Application
         [name]
       end
 
-      names.each do |n|
-        group_members = retrieve_array_attribute(entry, member_attribute)
-        groups << LdapRole.new(n, entry.dn, group_members)
+      group_members = if flatten_nested_groups
+        log.debug "Must flatten group"
+        retrieve_all_group_members(entry.dn)
+      else
+        retrieve_array_attribute(entry, member_attribute)
       end
-      entry.each do |attribute, values|
-        log.debug "   #{attribute}:"
-        values.each do |value|
-          log.debug "      --->#{value.inspect}"
-        end
+
+      names.each do |n|
+        groups << LdapRole.new(n, entry.dn, group_members)
       end
     end
     raise LdapError, "LDAP: #{@ldap.get_operation_result.message}" unless res
     return groups
+  end
+
+  # Retrieves all users member of a group recursively using group's Distinguished Name
+  # It relies on LDAP_MATCHING_RULE_IN_CHAIN filter matching rule to flatten nested groups
+  #
+  # @param [String] group_dn group's distinguised name
+  # @return [array] array of users DN which are directly or indirectly member of the given group
+  def retrieve_all_group_members(group_dn)
+    ldap_user_conf = @config[:ldap_users]
+
+    log.debug "Retrieving members for #{group_dn}"
+
+    members = []
+    res = @ldap.search(
+      base: ldap_user_conf[:base],
+      filter: "(&(!(objectClass=computer))(objectClass=user)(memberOf:1.2.840.113556.1.4.1941:=#{group_dn}))",
+      attributes: [:dn]
+    ) do |entry|
+      log.debug "      --->#{entry.dn}"
+      members << entry.dn
+    end
+    raise LdapError, "LDAP: #{@ldap.get_operation_result.message}" unless res
+    return members
   end
 
   PgRole = Struct.new :name, :member_names
