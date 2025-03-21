@@ -1,4 +1,4 @@
-image: Visual Studio 2019
+image: Visual Studio 2022
 
 init:
   - set PATH=C:/Ruby%ruby_version%/bin;c:/Program Files/Git/cmd;c:/Windows/system32;C:/Windows/System32/WindowsPowerShell/v1.0
@@ -21,7 +21,8 @@ test_script:
 
 environment:
   matrix:
+    # ruby-3.3.6 currently fails installing stringio-3.1.5.gem
+    # - ruby_version: "33-x64"
+      # PGVER: 16
     - ruby_version: "27-x64"
-      PGVER: 13
-    - ruby_version: "24"
-      PGVER: 10
+      PGVER: 11
