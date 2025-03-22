@@ -168,7 +168,7 @@ class Application
   PgRole = Struct.new :name, :member_names
 
   # List of default roles taken from https://www.postgresql.org/docs/current/predefined-roles.html
-  PG_BUILTIN_ROLES = %w[ pg_read_all_data pg_write_all_data pg_read_all_settings pg_read_all_stats pg_stat_scan_tables pg_monitor pg_database_owner pg_signal_backend pg_read_server_files pg_write_server_files pg_execute_server_program pg_checkpoint]
+  PG_BUILTIN_ROLES = %w[ pg_read_all_data pg_write_all_data pg_read_all_settings pg_read_all_stats pg_stat_scan_tables pg_monitor pg_database_owner pg_signal_backend pg_read_server_files pg_write_server_files pg_execute_server_program pg_checkpoint pg_create_subscription pg_maintain pg_use_reserved_connections ]
 
   def search_pg_users
     pg_users_conf = @config[:pg_users]
