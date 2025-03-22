@@ -1,3 +1,9 @@
+## 0.5.1 / 2025-03-22
+
+* Add dependent gems for compat with ruby-3.5
+* Add predefined roles for compat with PostgreSQL-16 and 17
+
+
 ## 0.5.0 / 2023-08-24
 
 * Add Kerberos and NTLM authentication support to LDAP connection
