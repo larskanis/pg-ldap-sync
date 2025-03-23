@@ -52,7 +52,7 @@ class TestPgLdapSync < Minitest::Test
   end
 
   def start_pg_server
-    @port = 54321
+    @port = 23456
     ENV['PGPORT'] = @port.to_s
     ENV['PGHOST'] = 'localhost'
     unless File.exist?('temp/pg_data/PG_VERSION')
