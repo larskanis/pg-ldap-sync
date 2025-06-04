@@ -33,7 +33,7 @@ jobs:
             ruby: "head"
             PGVER: "17"
           - os: ubuntu
-            os_ver: "20.04"
+            os_ver: "22.04"
             ruby: "2.3"
             PGVER: "9.3"
           - os: macos
