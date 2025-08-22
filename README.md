@@ -27,7 +27,7 @@ It is meant to be started as a cron job.
 * Set scope of considered users/groups on LDAP and PG side
 * Test mode which doesn't do any changes to the DBMS
 * Both LDAP and PG connections can be secured by SSL/TLS
-* NTLM and Kerberos authentication to LDAP server
+* Password, NTLM and Kerberos authentication to LDAP server
 
 ## REQUIREMENTS:
 
