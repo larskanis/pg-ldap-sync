@@ -20,9 +20,6 @@ pg_connection:
   dbname: postgres
   host: localhost
   port: 23456
-# needed for postgres-pr:
-#   user: insert_your_username_here
-#   password:
 
 pg_users:
   filter: rolcanlogin AND NOT rolsuper AND rolname!='double_user'
