@@ -1,3 +1,11 @@
+## 0.5.2 / 2025-09-01
+
+* Replace `kwalify` by `json-schema` to remove hundreds of warnings about keyword arguments in modern Ruby. #51
+* Allow ERb syntax in config file. #52
+  This can be used to insert password from environment variable like so: `password: <%= ENV["PASSWORD"] %>`
+* Update documentation.
+
+
 ## 0.5.1 / 2025-03-22
 
 * Add dependent gems for compat with ruby-3.5
