@@ -3,7 +3,7 @@
 require "net/ldap"
 require "optparse"
 require "yaml"
-require "kwalify"
+require "json-schema"
 require "pg"
 require "pg_ldap_sync/logger"
 
@@ -26,11 +26,10 @@ module PgLdapSync
 
     def validate_config(config, schema, fname)
       schema = YAML.load_file(schema)
-      validator = Kwalify::Validator.new(schema)
-      errors = validator.validate(config)
+      errors = JSON::Validator.fully_validate(schema, config, validate_schema: true, insert_defaults: true)
       if errors && !errors.empty?
         errors.each do |err|
-          log.fatal "error in #{fname}: [#{err.path}] #{err.message}"
+          log.fatal "error in #{fname}: #{err}"
         end
         raise InvalidConfig, 78 # EX_CONFIG
       end

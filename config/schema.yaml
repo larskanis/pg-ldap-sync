@@ -1,74 +1,78 @@
-type:       map
-mapping:
-  "ldap_connection":
-    type:      any
-    required:  yes
+"$schema": "http://json-schema.org/draft-04/schema#"
+"id": "https://github.com/larskanis/pg-ldap-sync/blob/-/config/schema.yaml"
+title: pg-ldap-sync config file
+type: object
+required:
+  - ldap_connection
+  - ldap_users
+  - ldap_groups
+  - pg_connection
+  - pg_users
+  - pg_groups
+properties:
+  ldap_connection:
+    type: object
 
-  "ldap_users":
-    type: map
-    required: yes
-    mapping:
-      "base":
-        type: str
-        required:  yes
-      "filter":
-        type: str
-        required:  yes
-      "name_attribute":
-        type: str
-        required:  yes
-      "lowercase_name":
-        type: bool
-        required:  no
-      "bothcase_name":
-        type: bool
-        required:  no
+  ldap_users:
+    type: object
+    required:
+      - base
+      - filter
+      - name_attribute
+    properties:
+      base:
+        type: string
+      filter:
+        type: string
+      name_attribute:
+        type: string
+      lowercase_name:
+        type: boolean
+      bothcase_name:
+        type: boolean
 
-  "ldap_groups":
-    type: map
-    required: yes
-    mapping:
-      "base":
-        type: str
-        required:  yes
-      "filter":
-        type: str
-        required:  yes
-      "name_attribute":
-        type: str
-        required:  yes
-      "lowercase_name":
-        type: bool
-        required:  no
-      "bothcase_name":
-        type: bool
-        required:  no
-      "member_attribute":
-        type: str
-        required:  yes
+  ldap_groups:
+    type: object
+    required:
+      - base
+      - filter
+      - name_attribute
+      - member_attribute
+    properties:
+      base:
+        type: string
+      filter:
+        type: string
+      name_attribute:
+        type: string
+      lowercase_name:
+        type: boolean
+      bothcase_name:
+        type: boolean
+      member_attribute:
+        type: string
 
-  "pg_connection":
-    type:      any
-    required:  yes
+  pg_connection:
+    type: object
 
-  "pg_users":
-    type: map
-    required: yes
-    mapping:
-      "filter":
-        type: str
-        required:  yes
-      "create_options":
-        type: str
+  pg_users:
+    type: object
+    required:
+      - filter
+    properties:
+      filter:
+        type: string
+      create_options:
+        type: ["string", "null"]
 
-  "pg_groups":
-    type: map
-    required: yes
-    mapping:
-      "filter":
-        type: str
-        required:  yes
-      "create_options":
-        type: str
-      "grant_options":
-        type: str
+  pg_groups:
+    type: object
+    required:
+      - filter
+    properties:
+      filter:
+        type: string
+      create_options:
+        type: ["string", "null"]
+      grant_options:
+        type: ["string", "null"]
