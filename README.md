@@ -2,7 +2,7 @@
 
 # Sync users and groups from LDAP to PostgreSQL
 
-* http://github.com/larskanis/pg-ldap-sync
+* https://github.com/larskanis/pg-ldap-sync
 
 ## DESCRIPTION:
 
@@ -39,7 +39,7 @@ It is meant to be started as a cron job.
 
 Install Ruby:
 
-* on Windows: http://rubyinstaller.org
+* on Windows: https://rubyinstaller.org
 * on Debian/Ubuntu: `apt-get install ruby libpq-dev`
 
 Install pg-ldap-sync and required dependencies:

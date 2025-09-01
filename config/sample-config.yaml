@@ -3,7 +3,7 @@
 # is considered as LDAP-synchronized.
 
 # Connection parameters to LDAP server
-# see also: http://net-ldap.rubyforge.org/Net/LDAP.html#method-c-new
+# see also: https://www.rubydoc.info/gems/net-ldap/Net%2FLDAP:initialize
 ldap_connection:
   host: ldapserver
   port: 389
@@ -44,7 +44,7 @@ ldap_groups:
   member_attribute: member
 
 # Connection parameters to PostgreSQL server
-# see also: http://rubydoc.info/gems/pg/PG/Connection#initialize-instance_method
+# see also: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS
 pg_connection:
   host:
   dbname: postgres
