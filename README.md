@@ -49,7 +49,7 @@ sudo apt install ruby-pg-ldap-sync
 Install Ruby:
 
 * on Windows: https://rubyinstaller.org
-* on Debian/Ubuntu: `apt-get install ruby libpq-dev`
+* on Debian/Ubuntu: `apt-get install ruby`
 
 Install pg-ldap-sync and required dependencies:
 ```sh
@@ -60,7 +60,6 @@ gem install pg-ldap-sync
 ```sh
 git clone https://github.com/larskanis/pg-ldap-sync.git
 cd pg-ldap-sync
-gem install bundler
 bundle install
 bundle exec rake install
 ```
