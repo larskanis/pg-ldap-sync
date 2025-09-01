@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
   spec.rdoc_options = %w[--main README.md --charset=UTF-8]
   spec.required_ruby_version = ">= 2.3"
 
+  spec.add_runtime_dependency "erb", ">= 1"
   spec.add_runtime_dependency "net-ldap", "~> 0.16"
   spec.add_runtime_dependency "json-schema", ">= 2"
   spec.add_runtime_dependency "pg", ">= 0.14", "< 2.0"

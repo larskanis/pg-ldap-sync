@@ -2,6 +2,7 @@
 
 require "net/ldap"
 require "optparse"
+require "erb"
 require "yaml"
 require "json-schema"
 require "pg"
@@ -37,7 +38,7 @@ module PgLdapSync
 
     def read_config_file(fname)
       raise "Config file #{fname.inspect} does not exist" unless File.exist?(fname)
-      config = YAML.load_file(fname)
+      config = YAML.load(ERB.new(File.read(fname)).result)
 
       schema_fname = File.join(File.dirname(__FILE__), "../../config/schema.yaml")
       validate_config(config, schema_fname, fname)
