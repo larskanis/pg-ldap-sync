@@ -170,13 +170,16 @@ class TestPgLdapSync < Minitest::Test
     assert_role("Fred", "", ["All Users", "Flintstones", "Wilmas"])
   end
 
-  def test_add_membership_bothcase
+  def test_add_membership_bothcase_with_erb
+    old_env, ENV['LDAP_PORT'] = ENV['LDAP_PORT'], "1389"
     sync_change(config: "config-ldapdb-bothcase") do |dir|
       # add 'Fred' to 'Wilmas'
       @directory[0]["cn=Wilmas,dc=example,dc=com"]["member"] << "cn=Fred Flintstone,dc=example,dc=com"
     end
     assert_role("fred", "", ["All Users", "all users", "Flintstones", "flintstones", "Wilmas", "wilmas"])
     assert_role("Fred", "", ["All Users", "all users", "Flintstones", "flintstones", "Wilmas", "wilmas"])
+  ensure
+    ENV['LDAP_PORT'] = old_env
   end
 
   def test_revoke_membership

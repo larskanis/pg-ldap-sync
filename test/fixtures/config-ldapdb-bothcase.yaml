@@ -1,7 +1,7 @@
 ---
 ldap_connection:
   host: localhost
-  port: 1389
+  port: <%= ENV["LDAP_PORT"] || 999 %>
 
 ldap_users:
   base: dc=example,dc=com
