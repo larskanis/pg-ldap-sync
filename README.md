@@ -41,7 +41,7 @@ pg-ldap-sync is included in Ubuntu-22.04 and Debian-11 and newer.
 It can be installed by
 
 ```sh
-  sudo apt install ruby-pg-ldap-sync
+sudo apt install ruby-pg-ldap-sync
 ```
 
 ### Install from source
@@ -53,16 +53,16 @@ Install Ruby:
 
 Install pg-ldap-sync and required dependencies:
 ```sh
-  gem install pg-ldap-sync
+gem install pg-ldap-sync
 ```
 
 ### Install from Git:
 ```sh
-  git clone https://github.com/larskanis/pg-ldap-sync.git
-  cd pg-ldap-sync
-  gem install bundler
-  bundle install
-  bundle exec rake install
+git clone https://github.com/larskanis/pg-ldap-sync.git
+cd pg-ldap-sync
+gem install bundler
+bundle install
+bundle exec rake install
 ```
 
 ## USAGE:
@@ -74,11 +74,11 @@ or even better
 
 Run in test-mode:
 ```sh
-  pg_ldap_sync -c my_config.yaml -vv -t
+pg_ldap_sync -c my_config.yaml -vv -t
 ```
 Run in modify-mode:
 ```sh
-  pg_ldap_sync -c my_config.yaml -vv
+pg_ldap_sync -c my_config.yaml -vv
 ```
 
 It is recommended to avoid granting permissions to synchronized users on the PostgreSQL server, but to grant permissions to groups instead.
@@ -89,9 +89,9 @@ This is because `DROP USER` statements invoked when a user leaves otherwise fail
 ## TEST:
 There is a small test suite in the `test` directory that runs against an internal LDAP server and a PostgreSQL server. Ensure `pg_ctl`, `initdb` and `psql` commands are in the `PATH` like so:
 ```sh
-  cd pg-ldap-sync
-  bundle install
-  PATH=$PATH:/usr/lib/postgresql/10/bin/ bundle exec rake test
+cd pg-ldap-sync
+bundle install
+PATH=$PATH:/usr/lib/postgresql/10/bin/ bundle exec rake test
 ```
 
 ## ISSUES:
