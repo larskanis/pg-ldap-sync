@@ -37,6 +37,15 @@ It is meant to be started as a cron job.
 
 ## INSTALL:
 
+pg-ldap-sync is included in Ubuntu-22.04 and Debian-11 and newer.
+It can be installed by
+
+```sh
+  sudo apt install ruby-pg-ldap-sync
+```
+
+### Install from source
+
 Install Ruby:
 
 * on Windows: https://rubyinstaller.org
