@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors = ["Lars Kanis"]
   spec.email = ["lars@greiz-reinsdorf.de"]
 
-  spec.summary = "Use LDAP permissions in PostgreSQL"
+  spec.summary = "Sync users and groups from LDAP to PostgreSQL"
   spec.homepage = "https://github.com/larskanis/pg-ldap-sync"
   spec.license = "MIT"
 

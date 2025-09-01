@@ -1,6 +1,6 @@
 [![Build Status](https://app.travis-ci.com/larskanis/pg-ldap-sync.svg?branch=master)](https://app.travis-ci.com/larskanis/pg-ldap-sync) [![Build status](https://ci.appveyor.com/api/projects/status/09xn9q5p64jbxtka/branch/master?svg=true)](https://ci.appveyor.com/project/larskanis/pg-ldap-sync/branch/master)
 
-# Use LDAP permissions in PostgreSQL
+# Sync users and groups from LDAP to PostgreSQL
 
 * http://github.com/larskanis/pg-ldap-sync
 
