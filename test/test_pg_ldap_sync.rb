@@ -144,7 +144,7 @@ class TestPgLdapSync < Minitest::Test
   end
 
   def test_invalid_config
-    assert_output(/key 'ldap_users:' is required/) do
+    assert_output(/required property of 'ldap_users'.*property '#\/ldap_connection' of type null/m) do
       assert_raises(PgLdapSync::InvalidConfig) do
         sync_with_config("config-invalid")
       end
