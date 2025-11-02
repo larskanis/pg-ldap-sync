@@ -1,3 +1,8 @@
+## 0.5.3 / 2025-11-02
+
+* Add predefined roles for compat with PostgreSQL-18
+
+
 ## 0.5.2 / 2025-09-01
 
 * Replace `kwalify` by `json-schema` to remove hundreds of warnings about keyword arguments in modern Ruby. #51
