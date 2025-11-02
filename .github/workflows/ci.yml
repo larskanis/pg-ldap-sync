@@ -23,22 +23,22 @@ jobs:
         include:
           - os: windows
             ruby: "head"
-            PGVERSION: 17.0-1-windows-x64
-            PGVER: "17"
+            PGVERSION: 18.0-1-windows-x64
+            PGVER: "18"
           - os: windows
             ruby: "2.4"
             PGVERSION: 9.4.26-1-windows-x64
             PGVER: "9.4"
           - os: ubuntu
             ruby: "head"
-            PGVER: "17"
+            PGVER: "18"
           - os: ubuntu
             os_ver: "22.04"
             ruby: "2.3"
             PGVER: "9.3"
           - os: macos
             ruby: "head"
-            PGVERSION: 17.0-1-osx
+            PGVERSION: 17.6-1-osx
             PGVER: "17"
 
     runs-on: ${{ matrix.os }}-${{ matrix.os_ver || 'latest' }}
